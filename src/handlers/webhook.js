@@ -34,7 +34,7 @@ export async function handleWebhook(request, env) {
     // ── Fetch KB + Recent session history (last 30 min)
     const [kbEntries, chatHistory] = await Promise.all([
       getAllKB(env),
-      getRecentSessionHistory(env, userId, 20),
+      getRecentSessionHistory(env, userId, 10),
     ]);
 
     const systemPrompt = buildSystemPrompt(kbEntries);
