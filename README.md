@@ -1,6 +1,6 @@
 # WMT Junior Bot 🤖
 
-ကိုကို့ရဲ့ Digital ကိုယ်ပွား — Lovely & Funny Telegram Bot
+WMT Digital ကိုယ်ပွား — Lovely & Funny Telegram Bot
 
 ## Tech Stack
 - **AI**: Gemini 2.5 Flash
