@@ -33,5 +33,12 @@ export async function generateReply(env, systemPrompt, chatHistory) {
   }
 
   const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text ?? "...";
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+  if (!text) {
+    console.error("Empty response:", JSON.stringify(data));
+    return "အင်း... နည်းနည်း ကြာသွားတယ်။ ထပ်ပြောပါ 😅";
+  }
+
+  return text;
 }
