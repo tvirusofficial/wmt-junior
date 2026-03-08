@@ -20,7 +20,7 @@ export async function generateReply(env, systemPrompt, chatHistory) {
       contents,
       generationConfig: {
         temperature: 1.0,
-        maxOutputTokens: 1024,
+        maxOutputTokens: 2048,
         topP: 0.95,
       },
     }),
@@ -33,11 +33,22 @@ export async function generateReply(env, systemPrompt, chatHistory) {
   }
 
   const data = await res.json();
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  const candidate = data.candidates?.[0];
+  const text = candidate?.content?.parts?.[0]?.text;
+  const finishReason = candidate?.finishReason;
+
+  // Log finish reason for debugging
+  console.log("Gemini finishReason:", finishReason);
 
   if (!text) {
     console.error("Empty response:", JSON.stringify(data));
     return "အင်း... နည်းနည်း ကြာသွားတယ်။ ထပ်ပြောပါ 😅";
+  }
+
+  // If cut off due to MAX_TOKENS, append continuation signal
+  if (finishReason === "MAX_TOKENS") {
+    console.warn("Response was cut off by MAX_TOKENS");
+    return text + "...";
   }
 
   return text;
