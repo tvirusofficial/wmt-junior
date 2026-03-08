@@ -567,14 +567,16 @@ function doLogin() {
 
 async function initApp() {
   // Test token
-  const res = await apiFetch('/api/config');
+  // Test auth with chats endpoint
+  const res = await apiFetch('/api/chats');
   if (!res.ok) {
     document.getElementById('login-err').style.display = 'block';
     TOKEN = '';
     return;
   }
   document.getElementById('login-screen').style.display = 'none';
-  loadChats();
+  allChats = await res.json();
+  renderChats(allChats);
   loadKB();
   loadSchedules();
   loadConfig();
