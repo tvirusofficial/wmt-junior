@@ -80,6 +80,8 @@ select.search option{background:var(--s1);}
 .cat-memory{background:var(--pink-dim);color:var(--pink);border:1px solid rgba(244,114,182,.3);}
 .cat-personality{background:rgba(251,191,36,.1);color:var(--amber);border:1px solid rgba(251,191,36,.25);}
 .cat-other{background:var(--s3);color:var(--t2);border:1px solid var(--border2);}
+.cat-girl{background:rgba(244,114,182,.1);color:#f472b6;border:1px solid rgba(244,114,182,.3);}
+.cat-gmem{background:rgba(251,113,133,.1);color:#fb7185;border:1px solid rgba(251,113,133,.3);}
 .kb-info{flex:1;min-width:0;}
 .kb-title{font-size:13px;font-weight:600;margin-bottom:4px;}
 .kb-content{font-size:12px;color:var(--t2);line-height:1.55;}
@@ -198,6 +200,7 @@ select.form-ctrl option{background:var(--s1);}
           <option value="">All Categories</option>
           <option value="job">Job</option><option value="hobby">Hobby</option>
           <option value="memory">Memory</option><option value="personality">Personality</option>
+          <option value="girl_info">မမ အကြောင်း</option><option value="girl_memory">မမ Memories</option>
           <option value="other">Other</option>
         </select>
       </div>
@@ -226,7 +229,8 @@ select.form-ctrl option{background:var(--s1);}
     <div class="form-group"><label class="form-lbl">Category</label>
       <select class="form-ctrl" id="kb-cat">
         <option value="job">Job / ကုမ္ပဏီ</option><option value="hobby">Hobby / ဝါသနာ</option>
-        <option value="memory">Memory</option><option value="personality">Personality</option><option value="other">Other</option>
+        <option value="memory">Memory</option><option value="personality">Personality</option><option value="girl_info">မမ အကြောင်း</option><option value="girl_memory">မမ Memories</option>
+        <option value="other">Other</option>
       </select></div>
     <div class="form-group"><label class="form-lbl">Title</label><input type="text" class="form-ctrl" id="kb-title" placeholder="e.g. ကုမ္ပဏီ အမည်"></div>
     <div class="form-group"><label class="form-lbl">Content</label><textarea class="form-ctrl" id="kb-content" placeholder="Detail ထည့်ပါ..."></textarea></div>
@@ -295,8 +299,8 @@ function renderChats(logs){
 }
 function filterChats(){const q=document.getElementById('chat-q').value.toLowerCase();renderChats(q?chats.filter(c=>c.message.toLowerCase().includes(q)):chats);}
 async function loadKB(){const r=await api('/api/kb');if(!r.ok)return;kbs=await r.json();renderKB(kbs);}
-const catC={job:'cat-job',hobby:'cat-hobby',memory:'cat-memory',personality:'cat-personality',other:'cat-other'};
-const catL={job:'Job',hobby:'Hobby',memory:'Memory',personality:'Personality',other:'Other'};
+const catC={job:'cat-job',hobby:'cat-hobby',memory:'cat-memory',personality:'cat-personality',other:'cat-other','girl_info':'cat-girl','girl_memory':'cat-gmem'};
+const catL={job:'Job',hobby:'Hobby',memory:'Memory',personality:'Personality',other:'Other','girl_info':'မမ Info','girl_memory':'မမ Memory'};
 function renderKB(items){
   const el=document.getElementById('kb-body');
   document.getElementById('kb-meta').textContent=items.length+' entries';
