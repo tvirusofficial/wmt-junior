@@ -20,7 +20,7 @@ export async function generateReply(env, systemPrompt, chatHistory) {
       contents,
       generationConfig: {
         temperature: 1.0,
-        maxOutputTokens: 500,
+        maxOutputTokens: 1024,
         topP: 0.95,
       },
     }),
