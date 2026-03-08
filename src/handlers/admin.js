@@ -1,6 +1,5 @@
 /**
  * admin.js — Admin Panel API Handler
- * All CRUD operations for Admin Panel
  */
 
 import { isValidAdminToken } from "../middleware/auth.js";
@@ -10,6 +9,7 @@ import {
   getAllSchedules, addSchedule, deleteSchedule,
   getAllConfig, setConfig,
 } from "../services/supabase.js";
+import ADMIN_HTML from "../admin-html.js";
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -41,15 +41,15 @@ export async function handleAdmin(request, env) {
 
   // Serve Admin Panel HTML
   if (path === "/admin" || path === "/admin/") {
-    return serveAdminPanel(env);
+    return new Response(ADMIN_HTML, {
+      headers: { "Content-Type": "text/html; charset=utf-8" },
+    });
   }
 
-  // ── Auth check for all /api/* routes
+  // Auth check for all /api/* routes
   if (!isValidAdminToken(request, env)) {
     return json({ error: "Unauthorized" }, 401);
   }
-
-  // ── API Routes ──────────────────────────────────────────
 
   // Chat Logs
   if (path === "/api/chats" && request.method === "GET") {
@@ -59,9 +59,7 @@ export async function handleAdmin(request, env) {
 
   // Knowledge Base
   if (path === "/api/kb") {
-    if (request.method === "GET") {
-      return json(await getAllKB(env));
-    }
+    if (request.method === "GET") return json(await getAllKB(env));
     if (request.method === "POST") {
       const body = await request.json();
       const entry = await addKBEntry(env, body);
@@ -84,13 +82,13 @@ export async function handleAdmin(request, env) {
 
   // Schedules
   if (path === "/api/schedules") {
-    if (request.method === "GET") {
-      return json(await getAllSchedules(env));
-    }
+    if (request.method === "GET") return json(await getAllSchedules(env));
     if (request.method === "POST") {
       const body = await request.json();
+      const targetUserId = body.target_user_id ||
+        env.ALLOWED_USER_IDS?.split(",")[0]?.trim();
       const schedule = await addSchedule(env, {
-        targetUserId: body.target_user_id,
+        targetUserId,
         message: body.message,
         context: body.context,
         sendAt: body.send_at,
@@ -109,9 +107,7 @@ export async function handleAdmin(request, env) {
 
   // Config
   if (path === "/api/config") {
-    if (request.method === "GET") {
-      return json(await getAllConfig(env));
-    }
+    if (request.method === "GET") return json(await getAllConfig(env));
     if (request.method === "PATCH") {
       const body = await request.json();
       await setConfig(env, body.key, body.value);
@@ -119,7 +115,7 @@ export async function handleAdmin(request, env) {
     }
   }
 
-  // Webhook setup helper
+  // Webhook setup
   if (path === "/api/setup-webhook" && request.method === "POST") {
     const workerUrl = `https://${url.hostname}/webhook`;
     const { setWebhook } = await import("../services/telegram.js");
@@ -128,14 +124,4 @@ export async function handleAdmin(request, env) {
   }
 
   return json({ error: "Not found" }, 404);
-}
-
-function serveAdminPanel(env) {
-  // Serve the admin HTML file
-  return new Response(`<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>WMT Junior Admin</title>
-<script>window.location.href='/admin/index.html'</script>
-</head><body>Loading...</body></html>`, {
-    headers: { "Content-Type": "text/html" },
-  });
 }
