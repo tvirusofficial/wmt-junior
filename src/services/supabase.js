@@ -37,7 +37,26 @@ export async function getChatHistory(env, userId, limit = 20) {
   );
   if (!res.ok) return [];
   const rows = await res.json();
-  // Return in chronological order for AI context
+  return rows.reverse().map((r) => ({ role: r.role, content: r.message }));
+}
+
+// ── Get history from current session only (last 30 min)
+export async function getRecentSessionHistory(env, userId, limit = 20) {
+  // Get messages from last 30 minutes only — keeps context clean
+  const since = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+
+  const res = await fetch(
+    `${BASE(env)}/wmt_chat_logs?user_id=eq.${userId}&created_at=gte.${since}&order=created_at.desc&limit=${limit}`,
+    { headers: getHeaders(env) }
+  );
+  if (!res.ok) return [];
+  const rows = await res.json();
+
+  // If no recent messages, fall back to last 10 messages
+  if (rows.length === 0) {
+    return getChatHistory(env, userId, 10);
+  }
+
   return rows.reverse().map((r) => ({ role: r.role, content: r.message }));
 }
 
