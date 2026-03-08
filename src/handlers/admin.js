@@ -85,15 +85,16 @@ export async function handleAdmin(request, env) {
     if (request.method === "GET") return json(await getAllSchedules(env));
     if (request.method === "POST") {
       const body = await request.json();
-      const targetUserId = body.target_user_id ||
-        env.ALLOWED_USER_IDS?.split(",")[0]?.trim();
-      const schedule = await addSchedule(env, {
-        targetUserId,
-        message: body.message,
-        context: body.context,
-        sendAt: body.send_at,
-      });
-      return json(schedule, 201);
+      const userIds = env.ALLOWED_USER_IDS?.split(",").map(id => id.trim()).filter(Boolean) || [];
+      await Promise.all(userIds.map(uid =>
+        addSchedule(env, {
+          targetUserId: uid,
+          message: body.message,
+          context: body.context,
+          sendAt: body.send_at,
+        })
+      ));
+      return json({ success: true, sent_to: userIds.length }, 201);
     }
   }
 
