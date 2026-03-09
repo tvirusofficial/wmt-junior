@@ -152,6 +152,10 @@ select.form-ctrl option{background:var(--s1);}
 .rec-btn.active{background:var(--acc-dim);border-color:var(--acc);color:var(--acc);}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
 
+.flag-card{background:var(--s2);border:1px solid rgba(244,114,182,.3);border-radius:var(--r);padding:14px 16px;display:flex;gap:12px;align-items:flex-start;}
+.flag-card:hover{border-color:var(--pink);}
+.flag-msg{flex:1;min-width:0;font-size:13px;font-family:'Noto Sans Myanmar','Syne',sans-serif;line-height:1.65;}
+.flag-time{font-size:10px;color:var(--t4);font-family:'JetBrains Mono',monospace;margin-top:4px;}
 .load-more-hint{text-align:center;font-size:11px;color:var(--t4);padding:8px;font-family:'JetBrains Mono',monospace;}
 .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:10px;color:var(--t4);}
 .empty-icon{font-size:36px;opacity:.4;}.empty-txt{font-size:13px;}
@@ -198,6 +202,7 @@ select.form-ctrl option{background:var(--s1);}
     <div class="nav-item" onclick="go('kb',this)"><span class="nav-icon">📚</span>Knowledge Base</div>
     <div class="nav-item" onclick="go('schedule',this)"><span class="nav-icon">⏰</span>Schedules</div>
     <div class="sb-sec">System</div>
+    <div class="nav-item" onclick="go('flagged',this)"><span class="nav-icon">🚩</span>Messages <span id="flag-badge" style="display:none;background:var(--pink);color:#fff;font-size:9px;padding:1px 5px;border-radius:10px;margin-left:auto"></span></div>
     <div class="nav-item" onclick="go('config',this)"><span class="nav-icon">⚙️</span>Config</div>
     <div class="sb-foot"><button class="logout-btn" onclick="doLogout()">Logout</button></div>
   </div>
@@ -236,6 +241,14 @@ select.form-ctrl option{background:var(--s1);}
         <button class="btn-pri" onclick="openSchModal()">+ Add</button>
       </div>
       <div class="scroll-body" id="sch-body"><div class="loading"><div class="spin"></div>Loading...</div></div>
+    </div>
+    <div class="tab" id="tab-flagged">
+      <div class="pg-hdr">
+        <div class="pg-title">🚩 Messages for Admin</div>
+        <div class="pg-meta" id="flag-meta">—</div>
+        <button class="btn-out" onclick="loadFlagged()">↻ Refresh</button>
+      </div>
+      <div class="scroll-body" id="flag-body"><div class="loading"><div class="spin"></div>Loading...</div></div>
     </div>
     <div class="tab" id="tab-config">
       <div class="pg-hdr"><div class="pg-title">⚙️ Config</div></div>
@@ -499,6 +512,41 @@ function closeIfBg(e,id){if(e.target===document.getElementById(id))closeModal(id
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 let _tt;
 function toast(msg,type='ok'){const t=document.getElementById('toast');t.textContent=msg;t.className=\`toast \${type} show\`;clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('show'),2500);}
+// ── FLAGGED
+let flagged=[];
+async function loadFlagged(){
+  document.getElementById('flag-body').innerHTML='<div class="loading"><div class="spin"></div>Loading...</div>';
+  const r=await api('/api/flagged');if(!r.ok)return;
+  flagged=await r.json();
+  renderFlagged();
+}
+function renderFlagged(){
+  const el=document.getElementById('flag-body');
+  document.getElementById('flag-meta').textContent=flagged.length+' messages';
+  const badge=document.getElementById('flag-badge');
+  if(flagged.length){badge.textContent=flagged.length;badge.style.display='inline';}
+  else{badge.style.display='none';}
+  if(!flagged.length){el.innerHTML='<div class="empty"><div class="empty-icon">🚩</div><div class="empty-txt">No flagged messages</div></div>';return;}
+  el.innerHTML='<div class="kb-grid">'+flagged.map(m=>{
+    const t=new Date(m.created_at).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+    return\`<div class="flag-card">
+      <div style="font-size:20px;flex-shrink:0">🚩</div>
+      <div style="flex:1;min-width:0">
+        <div class="flag-msg">\${esc(m.message)}</div>
+        <div class="flag-time">\${t}</div>
+      </div>
+      <button class="icon-btn del" onclick="clearFlagMsg('\${m.id}')" title="Mark as read">✓</button>
+    </div>\`;
+  }).join('')+'</div>';
+}
+async function clearFlagMsg(id){
+  const r=await api(\`/api/flagged/\${id}\`,{method:'DELETE'});
+  if(!r.ok)return toast('Error','err');
+  flagged=flagged.filter(m=>m.id!==id);
+  renderFlagged();
+  toast('Marked as read','ok');
+}
+
 const saved=localStorage.getItem('wmtk');if(saved){TOKEN=saved;initApp();}
 </script>
 </body>
