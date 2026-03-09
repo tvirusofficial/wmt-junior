@@ -41,8 +41,7 @@ export async function getChatHistory(env, userId, limit = 20) {
 }
 
 // ── Get history from current session only (last 30 min)
-export async function getRecentSessionHistory(env, userId, limit = 20) {
-  // Get messages from last 30 minutes only — keeps context clean
+export async function getRecentSessionHistory(env, userId, limit = 10) {
   const since = new Date(Date.now() - 30 * 60 * 1000).toISOString();
 
   const res = await fetch(
@@ -52,9 +51,8 @@ export async function getRecentSessionHistory(env, userId, limit = 20) {
   if (!res.ok) return [];
   const rows = await res.json();
 
-  // If no recent messages, fall back to last 20 rows (= 10 exchanges)
   if (rows.length === 0) {
-    return getChatHistory(env, userId, 20);
+    return getChatHistory(env, userId, 10);
   }
 
   return rows.reverse().map((r) => ({ role: r.role, content: r.message }));
@@ -62,7 +60,7 @@ export async function getRecentSessionHistory(env, userId, limit = 20) {
 
 export async function getAllChatLogs(env, limit = 100) {
   const res = await fetch(
-    `${BASE(env)}/wmt_chat_logs?order=created_at.desc&limit=${limit}`,
+    `${BASE(env)}/wmt_chat_logs?order=created_at.asc&limit=${limit}`,
     { headers: getHeaders(env) }
   );
   if (!res.ok) return [];
@@ -131,14 +129,14 @@ export async function getPendingSchedules(env) {
 
 export async function getAllSchedules(env) {
   const res = await fetch(
-    `${BASE(env)}/wmt_scheduled_messages?order=send_at.desc&limit=50`,
+    `${BASE(env)}/wmt_scheduled_messages?order=send_at.desc&limit=100`,
     { headers: getHeaders(env) }
   );
   if (!res.ok) return [];
   return res.json();
 }
 
-export async function addSchedule(env, { targetUserId, message, context, sendAt }) {
+export async function addSchedule(env, { targetUserId, message, context, sendAt, recurrence = "once" }) {
   const res = await fetch(`${BASE(env)}/wmt_scheduled_messages`, {
     method: "POST",
     headers: getHeaders(env),
@@ -147,7 +145,18 @@ export async function addSchedule(env, { targetUserId, message, context, sendAt 
       message,
       context: context || null,
       send_at: sendAt,
+      recurrence,
     }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function updateSchedule(env, id, { message, context, sendAt, recurrence }) {
+  const res = await fetch(`${BASE(env)}/wmt_scheduled_messages?id=eq.${id}`, {
+    method: "PATCH",
+    headers: getHeaders(env),
+    body: JSON.stringify({ message, context, send_at: sendAt, recurrence }),
   });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
@@ -160,6 +169,27 @@ export async function markScheduleSent(env, id) {
     body: JSON.stringify({ is_sent: true }),
   });
   if (!res.ok) console.error("markScheduleSent error:", await res.text());
+}
+
+// Reschedule recurring — create next occurrence after sent
+export async function rescheduleRecurring(env, schedule) {
+  const { recurrence, send_at, target_user_id, message, context } = schedule;
+  if (!recurrence || recurrence === "once") return;
+
+  const prev = new Date(send_at);
+  let next = new Date(prev);
+
+  if (recurrence === "daily") next.setDate(next.getDate() + 1);
+  else if (recurrence === "weekly") next.setDate(next.getDate() + 7);
+  else if (recurrence === "monthly") next.setMonth(next.getMonth() + 1);
+
+  await addSchedule(env, {
+    targetUserId: target_user_id,
+    message,
+    context,
+    sendAt: next.toISOString(),
+    recurrence,
+  });
 }
 
 export async function deleteSchedule(env, id) {
