@@ -314,7 +314,7 @@ async function initApp(){
   const r=await api('/api/chats');
   if(!r.ok){document.getElementById('login-err').style.display='block';TOKEN='';return;}
   document.getElementById('login-screen').style.display='none';
-  await fetchMoreChats(true);loadKB();loadSchedules();loadConfig();
+  await fetchMoreChats(true);loadKB();loadSchedules();loadConfig();loadFlagged();
 }
 async function api(path,opts={}){return fetch(W+path,{...opts,headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN,...(opts.headers||{})}});}
 function go(name,el){
