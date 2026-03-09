@@ -52,9 +52,9 @@ export async function getRecentSessionHistory(env, userId, limit = 20) {
   if (!res.ok) return [];
   const rows = await res.json();
 
-  // If no recent messages, fall back to last 10 messages
+  // If no recent messages, fall back to last 20 rows (= 10 exchanges)
   if (rows.length === 0) {
-    return getChatHistory(env, userId, 10);
+    return getChatHistory(env, userId, 20);
   }
 
   return rows.reverse().map((r) => ({ role: r.role, content: r.message }));
