@@ -5,12 +5,8 @@
 import { isAllowedUser, isValidWebhookSecret } from "../middleware/auth.js";
 import { extractMessage, sendMessage, sendTyping } from "../services/telegram.js";
 import { getRecentSessionHistory, saveChatLog, getAllKB } from "../services/supabase.js";
-import { generateReply, detectAdminFlag } from "../services/gemini.js";
+import { generateReply } from "../services/gemini.js";
 import { buildSystemPrompt } from "../system-prompt.js";
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 export async function handleWebhook(request, env) {
   if (!isValidWebhookSecret(request, env)) {
@@ -32,10 +28,6 @@ export async function handleWebhook(request, env) {
 
   await sendTyping(env, chatId);
 
-  // 1-2 sec natural delay before replying
-  const delay = 1000 + Math.random() * 1000;
-  await sleep(delay);
-
   try {
     const [kbEntries, chatHistory] = await Promise.all([
       getAllKB(env),
@@ -44,40 +36,10 @@ export async function handleWebhook(request, env) {
 
     const systemPrompt = buildSystemPrompt(kbEntries);
     const messages = [...chatHistory, { role: "user", content: text }];
-
-    // Generate reply first
     const reply = await generateReply(env, systemPrompt, messages);
 
-    // Only call Gemini flag detection if message contains relevant keywords
-    // Saves API usage — most messages won't need flag detection
-    const FLAG_KEYWORDS = [
-      // ဆရာ variants
-      "ဆရာ့ကို", "ဆရာ့ဆီ", "ဆရာ သိစေ", "ဆရာ့ သိစေ", "ဆရာ့အတွက်",
-      "ဆရာ ပြောပေး", "ဆရာ မသိနဲ့", "ဆရာ့ကို မပြောနဲ့", "ဆရာ့ကို ပို့",
-      // ဦးဝင်းမြင့်ထွန်း variants
-      "ဦးဝင်းမြင့်ထွန်းကို", "ဦးဝင်းမြင့်ထွန်းဆီ", "ဦးဝင်းမြင့်ထွန်း သိစေ", "ဦးဝင်းမြင့်ထွန်း ပြောပေး",
-      // ကိုကို / ကိုကြီး variants
-      "ကိုကိုကို", "ကိုကိုဆီ", "ကိုကို သိစေ", "ကိုကို ပြောပေး", "ကိုကို မသိနဲ့",
-      "ကိုကြီးကို", "ကိုကြီးဆီ", "ကိုကြီး သိစေ", "ကိုကြီး ပြောပေး",
-      // WMT variants
-      "WMT ကို", "WMT ဆီ", "WMT သိစေ", "WMT ပြောပေး",
-      // အသဲ / ခလေ variants
-      "အသဲလေးကို", "အသဲလေးဆီ", "အသဲလေး သိစေ", "အသဲလေး ပြောပေး",
-      "ခလေလေးကို", "ခလေလေးဆီ", "ခလေလေး သိစေ", "ခလေလေး ပြောပေး",
-      // သူ့ကို / သူဆီ pattern
-      "သူ့ကို ပြောပေး", "သူ့ဆီ ပြောပေး", "သူ့ကို သိစေ", "သူ့ကို ပို့ပေး",
-      "သူ့ကို မပြောနဲ့", "သူ မသိနဲ့", "သူ သိစေချင်",
-    ];
-    const mightBeFlag = FLAG_KEYWORDS.some(kw => text.includes(kw));
-
-    let flagForAdmin = false;
-    if (mightBeFlag) {
-      const flagResult = await detectAdminFlag(env, text);
-      flagForAdmin = flagResult !== false;
-    }
-
     await Promise.all([
-      saveChatLog(env, { userId, role: "user", message: text, flagForAdmin }),
+      saveChatLog(env, { userId, role: "user", message: text }),
       saveChatLog(env, { userId, role: "assistant", message: reply }),
     ]);
 
@@ -85,7 +47,7 @@ export async function handleWebhook(request, env) {
 
   } catch (err) {
     console.error("Webhook handler error:", err);
-    await sendMessage(env, chatId, "အင်း... တစ်ခုခု ဖြစ်သွားတယ်။ နည်းနည်းနားပြီး ပြန်ပြော 😅");
+    await sendMessage(env, chatId, "အင်း... တစ်ခုခု ဖြစ်သွားတယ်။ နည်းနည်းနေပြီး ပြန်ပြော 😅");
   }
 
   return new Response("OK", { status: 200 });
