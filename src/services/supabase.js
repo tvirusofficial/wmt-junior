@@ -41,7 +41,7 @@ export async function getChatHistory(env, userId, limit = 20) {
 }
 
 // ── Get history from current session only (last 30 min)
-export async function getRecentSessionHistory(env, userId, limit = 10) {
+export async function getRecentSessionHistory(env, userId, limit = 20) {
   const since = new Date(Date.now() - 30 * 60 * 1000).toISOString();
 
   const res = await fetch(
@@ -52,7 +52,7 @@ export async function getRecentSessionHistory(env, userId, limit = 10) {
   const rows = await res.json();
 
   if (rows.length === 0) {
-    return getChatHistory(env, userId, 10);
+    return getChatHistory(env, userId, 20);
   }
 
   return rows.reverse().map((r) => ({ role: r.role, content: r.message }));
@@ -171,14 +171,11 @@ export async function markScheduleSent(env, id) {
   if (!res.ok) console.error("markScheduleSent error:", await res.text());
 }
 
-// Reschedule recurring — create next occurrence after sent
 export async function rescheduleRecurring(env, schedule) {
   const { recurrence, send_at, target_user_id, message, context } = schedule;
   if (!recurrence || recurrence === "once") return;
 
-  const prev = new Date(send_at);
-  let next = new Date(prev);
-
+  const next = new Date(send_at);
   if (recurrence === "daily") next.setDate(next.getDate() + 1);
   else if (recurrence === "weekly") next.setDate(next.getDate() + 7);
   else if (recurrence === "monthly") next.setMonth(next.getMonth() + 1);
