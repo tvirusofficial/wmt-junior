@@ -58,9 +58,9 @@ export async function getRecentSessionHistory(env, userId, limit = 10) {
   return rows.reverse().map((r) => ({ role: r.role, content: r.message }));
 }
 
-export async function getAllChatLogs(env, limit = 100, offset = 0) {
+export async function getAllChatLogs(env, limit = 100) {
   const res = await fetch(
-    `${BASE(env)}/wmt_chat_logs?order=created_at.desc&limit=${limit}&offset=${offset}`,
+    `${BASE(env)}/wmt_chat_logs?order=created_at.asc&limit=${limit}`,
     { headers: getHeaders(env) }
   );
   if (!res.ok) return [];
