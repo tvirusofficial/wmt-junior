@@ -300,7 +300,7 @@ async function initApp(){
   const r=await api('/api/chats');
   if(!r.ok){document.getElementById('login-err').style.display='block';TOKEN='';return;}
   document.getElementById('login-screen').style.display='none';
-  chats=await r.json();renderChats(chats);loadKB();loadSchedules();loadConfig();
+  await fetchMoreChats(true);loadKB();loadSchedules();loadConfig();
 }
 async function api(path,opts={}){return fetch(W+path,{...opts,headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN,...(opts.headers||{})}});}
 function go(name,el){
@@ -311,43 +311,73 @@ function go(name,el){
 }
 function toggleSB(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('open');}
 
-// ── CHATS
+// ── CHATS (Messenger style)
+let chatOffset=0,chatHasMore=true,chatLoading=false;
+
 async function loadChats(){
+  // Full reset
+  chatOffset=0;chatHasMore=true;chats=[];
   document.getElementById('chat-body').innerHTML='<div class="loading"><div class="spin"></div>Loading...</div>';
-  const r=await api('/api/chats');if(!r.ok)return;
-  chats=await r.json();
-  renderChats(chats);
+  await fetchMoreChats(true);
 }
-function renderChats(logs){
+
+async function fetchMoreChats(initial=false){
+  if(!chatHasMore||chatLoading)return;
+  chatLoading=true;
+  const r=await api(\`/api/chats?limit=50&offset=\${chatOffset}\`);
+  chatLoading=false;
+  if(!r.ok)return;
+  const batch=await r.json(); // newest first from API
+  if(batch.length<50)chatHasMore=false;
+  chatOffset+=batch.length;
+  // Reverse batch so oldest-first, prepend to chats
+  const older=[...batch].reverse();
+  chats=[...older,...chats];
+  document.getElementById('chat-meta').textContent=chatOffset+(chatHasMore?'+':'')+' messages';
+  renderChatMessages(initial);
+}
+
+function renderChatMessages(scrollToBottom=false){
   const el=document.getElementById('chat-body');
-  document.getElementById('chat-meta').textContent=logs.length+' messages';
-  if(!logs.length){el.innerHTML='<div class="empty"><div class="empty-icon">💬</div><div class="empty-txt">No messages yet</div></div>';return;}
+  if(!chats.length){
+    el.innerHTML='<div class="empty"><div class="empty-icon">💬</div><div class="empty-txt">No messages yet</div></div>';
+    return;
+  }
+  const prevScrollH=el.scrollHeight;
+  const q=document.getElementById('chat-q').value.toLowerCase();
+  const logs=q?chats.filter(c=>c.message.toLowerCase().includes(q)):chats;
   const grouped={};
   logs.forEach(m=>{
     const d=new Date(m.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
     if(!grouped[d])grouped[d]=[];grouped[d].push(m);
   });
   let h='<div class="chat-list">';
+  if(chatHasMore)h+='<div class="load-more-hint">↑ scroll up ပြီး ဟောင်းတာတွေကြည့်ရန်</div>';
   for(const[date,msgs]of Object.entries(grouped)){
     h+=\`<div class="date-lbl">\${date}</div>\`;
     msgs.forEach(m=>{
       const isU=m.role==='user';
       const t=new Date(m.created_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-      h+=\`<div class="msg-row \${isU?'user':'bot'}">
-        <div class="msg-av \${isU?'usr-av':'bot-av'}">\${isU?'👩':'🤖'}</div>
-        <div class="msg-body">
-          <div class="msg-bubble">\${esc(m.message)}</div>
-          <div class="msg-time">\${t}</div>
-        </div>
-      </div>\`;
+      h+=\`<div class="msg-row \${isU?'user':'bot'}"><div class="msg-av \${isU?'usr-av':'bot-av'}">\${isU?'👩':'🤖'}</div><div class="msg-body"><div class="msg-bubble">\${esc(m.message)}</div><div class="msg-time">\${t}</div></div></div>\`;
     });
   }
   h+='</div>';
   el.innerHTML=h;
-  el.scrollTop=el.scrollHeight;
+  if(scrollToBottom){
+    el.scrollTop=el.scrollHeight;
+  } else {
+    // Keep reading position after prepend
+    el.scrollTop=el.scrollHeight-prevScrollH;
+  }
 }
-function filterChats(){const q=document.getElementById('chat-q').value.toLowerCase();renderChats(q?chats.filter(c=>c.message.toLowerCase().includes(q)):chats);}
-function onChatScroll(){}
+
+function renderChats(logs){renderChatMessages(true);}
+function filterChats(){renderChatMessages(true);}
+
+function onChatScroll(){
+  const el=document.getElementById('chat-body');
+  if(el.scrollTop<80&&chatHasMore&&!chatLoading) fetchMoreChats(false);
+}
 
 // ── KB
 async function loadKB(){const r=await api('/api/kb');if(!r.ok)return;kbs=await r.json();renderKB(kbs);}
