@@ -300,7 +300,7 @@ async function initApp(){
   const r=await api('/api/chats');
   if(!r.ok){document.getElementById('login-err').style.display='block';TOKEN='';return;}
   document.getElementById('login-screen').style.display='none';
-  chats=await r.json();renderChats(true);loadKB();loadSchedules();loadConfig();
+  chats=await r.json();renderChats(chats);loadKB();loadSchedules();loadConfig();
 }
 async function api(path,opts={}){return fetch(W+path,{...opts,headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN,...(opts.headers||{})}});}
 function go(name,el){
@@ -311,48 +311,23 @@ function go(name,el){
 }
 function toggleSB(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('open');}
 
-// ── CHATS (Messenger style — latest at bottom, scroll up = load older)
-let chatOffset=0,chatHasMore=true,chatLoading=false,totalLoaded=0;
-
-async function loadChats(reset=true){
-  if(reset){
-    chatOffset=0;chatHasMore=true;chats=[];totalLoaded=0;
-    document.getElementById('chat-body').innerHTML='<div class="loading"><div class="spin"></div>Loading...</div>';
-  }
-  if(!chatHasMore||chatLoading)return;
-  chatLoading=true;
-  // Always fetch desc (newest first), offset increases as we load older
-  const r=await api(\`/api/chats?limit=100&offset=\${chatOffset}\`);
-  chatLoading=false;
-  if(!r.ok)return;
-  const batch=await r.json(); // newest first
-  if(batch.length<100)chatHasMore=false;
-  // Reverse batch so oldest-of-batch is first, prepend to chats array
-  const older=[...batch].reverse();
-  chats=[...older,...chats];
-  totalLoaded+=batch.length;
-  chatOffset+=batch.length;
-  renderChats(reset);
+// ── CHATS
+async function loadChats(){
+  document.getElementById('chat-body').innerHTML='<div class="loading"><div class="spin"></div>Loading...</div>';
+  const r=await api('/api/chats');if(!r.ok)return;
+  chats=await r.json();
+  renderChats(chats);
 }
-
-function renderChats(scrollToBottom=false){
+function renderChats(logs){
   const el=document.getElementById('chat-body');
-  const q=document.getElementById('chat-q').value.toLowerCase();
-  const filtered=q?chats.filter(c=>c.message.toLowerCase().includes(q)):chats;
-  document.getElementById('chat-meta').textContent=totalLoaded+(chatHasMore?'+':'')+' messages';
-  if(!filtered.length){
-    el.innerHTML='<div class="empty"><div class="empty-icon">💬</div><div class="empty-txt">No messages yet</div></div>';
-    return;
-  }
-  // Save scroll anchor before re-render
-  const prevScrollH=el.scrollHeight;
+  document.getElementById('chat-meta').textContent=logs.length+' messages';
+  if(!logs.length){el.innerHTML='<div class="empty"><div class="empty-icon">💬</div><div class="empty-txt">No messages yet</div></div>';return;}
   const grouped={};
-  filtered.forEach(m=>{
+  logs.forEach(m=>{
     const d=new Date(m.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
     if(!grouped[d])grouped[d]=[];grouped[d].push(m);
   });
   let h='<div class="chat-list">';
-  if(chatHasMore) h+='<div class="load-more-hint" id="load-hint">↑ ပိုဟောင်းတဲ့ messages ကြည့်ရန် scroll up</div>';
   for(const[date,msgs]of Object.entries(grouped)){
     h+=\`<div class="date-lbl">\${date}</div>\`;
     msgs.forEach(m=>{
@@ -369,22 +344,10 @@ function renderChats(scrollToBottom=false){
   }
   h+='</div>';
   el.innerHTML=h;
-  if(scrollToBottom){
-    // Initial load — jump to bottom (latest messages)
-    el.scrollTop=el.scrollHeight;
-  } else {
-    // Load older — keep user's reading position (scroll stays where they were)
-    el.scrollTop=el.scrollHeight-prevScrollH;
-  }
+  el.scrollTop=el.scrollHeight;
 }
-
-function filterChats(){renderChats(true);}
-
-function onChatScroll(){
-  const el=document.getElementById('chat-body');
-  // Trigger load when near top (within 60px)
-  if(el.scrollTop<60&&chatHasMore&&!chatLoading) loadChats(false);
-}
+function filterChats(){const q=document.getElementById('chat-q').value.toLowerCase();renderChats(q?chats.filter(c=>c.message.toLowerCase().includes(q)):chats);}
+function onChatScroll(){}
 
 // ── KB
 async function loadKB(){const r=await api('/api/kb');if(!r.ok)return;kbs=await r.json();renderKB(kbs);}
