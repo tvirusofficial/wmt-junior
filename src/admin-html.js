@@ -13,10 +13,10 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--t1);-webkit-
 .login-wrap{width:100%;max-width:380px;padding:20px;}
 .login-card{background:var(--s1);border:1px solid var(--border2);border-radius:20px;padding:44px 36px;text-align:center;box-shadow:0 40px 80px rgba(0,0,0,.5);}
 .login-icon{width:64px;height:64px;border-radius:16px;background:var(--acc-dim);border:1px solid var(--acc-glow);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 20px;}
-.login-name{font-size:22px;font-weight:700;letter-spacing:-.5px;color:var(--acc);margin-bottom:4px;}
+.login-name{font-size:22px;font-weight:700;color:var(--acc);margin-bottom:4px;}
 .login-sub{font-size:13px;color:var(--t3);margin-bottom:32px;}
-.inp{width:100%;padding:12px 16px;background:var(--bg);border:1px solid var(--border2);border-radius:10px;color:var(--t1);font-family:'JetBrains Mono',monospace;font-size:13px;outline:none;transition:border-color .2s,box-shadow .2s;margin-bottom:10px;}
-.inp:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-dim);}
+.inp{width:100%;padding:12px 16px;background:var(--bg);border:1px solid var(--border2);border-radius:10px;color:var(--t1);font-family:'JetBrains Mono',monospace;font-size:13px;outline:none;transition:border-color .2s;margin-bottom:10px;}
+.inp:focus{border-color:var(--acc);}
 .btn{width:100%;padding:13px;border:none;border-radius:10px;background:var(--acc);color:#fff;font-family:'Syne',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .2s;}
 .btn:hover{opacity:.9;}
 .login-err{font-size:12px;color:var(--pink);margin-top:10px;display:none;}
@@ -52,25 +52,36 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--t1);-webkit-
 .toolbar{padding:12px 20px;display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;}
 .search{flex:1;min-width:140px;padding:9px 14px;background:var(--s2);border:1px solid var(--border);border-radius:9px;color:var(--t1);font-size:13px;font-family:'Syne',sans-serif;outline:none;transition:border-color .2s;}
 .search:focus{border-color:var(--acc);}
-select.search{cursor:pointer;}
-select.search option{background:var(--s1);}
+select.search{cursor:pointer;}select.search option{background:var(--s1);}
 .scroll-body{flex:1;overflow-y:auto;padding:12px 20px 24px;}
 .scroll-body::-webkit-scrollbar{width:4px;}
 .scroll-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
-.chat-list{display:flex;flex-direction:column;gap:12px;}
-.date-lbl{text-align:center;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--t4);padding:6px 0;position:relative;}
+
+/* ── CHAT ── */
+.chat-list{display:flex;flex-direction:column;gap:10px;}
+.date-lbl{text-align:center;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--t4);padding:8px 0;position:relative;}
 .date-lbl::before,.date-lbl::after{content:'';position:absolute;top:50%;height:1px;background:var(--border);width:calc(50% - 56px);}
 .date-lbl::before{left:0;}.date-lbl::after{right:0;}
-.msg-row{display:flex;gap:10px;align-items:flex-end;max-width:84%;}
-.msg-row.user{flex-direction:row-reverse;margin-left:auto;}
-.msg-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
-.msg-av.bot-av{background:var(--acc-dim);border:1px solid var(--acc-glow);}
-.msg-av.usr-av{background:var(--pink-dim);border:1px solid rgba(244,114,182,.3);}
-.msg-bubble{padding:10px 14px;font-size:13px;line-height:1.7;font-family:'Noto Sans Myanmar','Syne',sans-serif;word-break:break-word;}
-.bot .msg-bubble{background:var(--s2);border:1px solid var(--border);border-radius:14px 14px 14px 4px;}
-.user .msg-bubble{background:var(--acc-dim);border:1px solid var(--acc-glow);border-radius:14px 14px 4px 14px;}
-.msg-time{font-size:10px;color:var(--t4);padding:3px 4px;font-family:'JetBrains Mono',monospace;}
-.user .msg-time{text-align:right;}
+
+/* User row — RIGHT side, pink */
+.msg-row{display:flex;gap:8px;align-items:flex-end;}
+.msg-row.user{flex-direction:row-reverse;margin-left:18%;}
+.msg-row.bot{margin-right:18%;}
+
+.msg-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.bot-av{background:var(--acc-dim);border:1px solid var(--acc-glow);}
+.usr-av{background:var(--pink-dim);border:1px solid rgba(244,114,182,.3);}
+
+.msg-body{display:flex;flex-direction:column;}
+.user .msg-body{align-items:flex-end;}
+
+.msg-bubble{padding:9px 13px;font-size:13px;line-height:1.7;font-family:'Noto Sans Myanmar','Syne',sans-serif;word-break:break-word;max-width:100%;}
+.bot .msg-bubble{background:var(--s2);border:1px solid var(--border);border-radius:4px 14px 14px 14px;color:var(--t1);}
+.user .msg-bubble{background:rgba(244,114,182,.15);border:1px solid rgba(244,114,182,.3);border-radius:14px 4px 14px 14px;color:var(--t1);}
+
+.msg-time{font-size:10px;color:var(--t4);padding:2px 4px;font-family:'JetBrains Mono',monospace;}
+
+/* ── KB ── */
 .kb-grid{display:flex;flex-direction:column;gap:8px;}
 .kb-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;display:flex;align-items:flex-start;gap:12px;transition:border-color .15s;}
 .kb-card:hover{border-color:var(--border2);}
@@ -79,9 +90,9 @@ select.search option{background:var(--s1);}
 .cat-hobby{background:var(--acc-dim);color:var(--acc);border:1px solid var(--acc-glow);}
 .cat-memory{background:var(--pink-dim);color:var(--pink);border:1px solid rgba(244,114,182,.3);}
 .cat-personality{background:rgba(251,191,36,.1);color:var(--amber);border:1px solid rgba(251,191,36,.25);}
-.cat-other{background:var(--s3);color:var(--t2);border:1px solid var(--border2);}
 .cat-girl{background:rgba(244,114,182,.1);color:#f472b6;border:1px solid rgba(244,114,182,.3);}
 .cat-gmem{background:rgba(251,113,133,.1);color:#fb7185;border:1px solid rgba(251,113,133,.3);}
+.cat-other{background:var(--s3);color:var(--t2);border:1px solid var(--border2);}
 .kb-info{flex:1;min-width:0;}
 .kb-title{font-size:13px;font-weight:600;margin-bottom:4px;}
 .kb-content{font-size:12px;color:var(--t2);line-height:1.55;}
@@ -89,19 +100,25 @@ select.search option{background:var(--s1);}
 .icon-btn{width:30px;height:30px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--t3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .15s;}
 .icon-btn:hover{border-color:var(--acc);color:var(--acc);}
 .icon-btn.del:hover{border-color:var(--pink);color:var(--pink);}
+
+/* ── SCHEDULE ── */
 .sch-list{display:flex;flex-direction:column;gap:8px;}
 .sch-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;display:flex;gap:14px;align-items:center;transition:border-color .15s;flex-wrap:wrap;}
 .sch-card:hover{border-color:var(--border2);}
 .sch-card.sent{opacity:.45;}
-.sch-timebox{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:10px 14px;text-align:center;flex-shrink:0;}
+.sch-timebox{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:10px 14px;text-align:center;flex-shrink:0;min-width:72px;}
 .sch-date-txt{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;}
 .sch-time-txt{font-size:15px;font-weight:700;color:var(--teal);font-family:'JetBrains Mono',monospace;}
 .sch-info{flex:1;min-width:120px;}
-.sch-msg-txt{font-size:13px;margin-bottom:4px;}
+.sch-msg-txt{font-size:13px;margin-bottom:4px;font-family:'Noto Sans Myanmar','Syne',sans-serif;}
 .sch-ctx-txt{font-size:11px;color:var(--t3);font-style:italic;}
+.sch-rec{font-size:10px;color:var(--acc);font-family:'JetBrains Mono',monospace;margin-top:3px;}
 .status-pill{padding:3px 9px;border-radius:20px;font-size:10px;font-family:'JetBrains Mono',monospace;flex-shrink:0;}
 .pill-pending{background:var(--teal-dim);color:var(--teal);border:1px solid rgba(45,212,191,.25);}
 .pill-sent{background:var(--s3);color:var(--t3);border:1px solid var(--border);}
+.sch-actions{display:flex;gap:6px;flex-shrink:0;}
+
+/* ── CONFIG ── */
 .cfg-list{display:flex;flex-direction:column;gap:8px;}
 .cfg-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
 .cfg-key{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--acc);min-width:180px;flex-shrink:0;}
@@ -112,11 +129,13 @@ select.search option{background:var(--s1);}
 .toggle.on{background:var(--acc);}
 .toggle::after{content:'';position:absolute;width:17px;height:17px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .2s;}
 .toggle.on::after{transform:translateX(19px);}
+
+/* ── MODAL ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);z-index:300;display:none;align-items:flex-end;justify-content:center;}
 .modal-overlay.open{display:flex;}
 @media(min-width:600px){.modal-overlay{align-items:center;padding:20px;}}
-.modal{background:var(--s1);border:1px solid var(--border2);border-radius:20px 20px 0 0;padding:28px 24px;width:100%;max-height:90vh;overflow-y:auto;}
-@media(min-width:600px){.modal{border-radius:16px;max-width:480px;}}
+.modal{background:var(--s1);border:1px solid var(--border2);border-radius:20px 20px 0 0;padding:28px 24px;width:100%;max-height:92vh;overflow-y:auto;}
+@media(min-width:600px){.modal{border-radius:16px;max-width:500px;}}
 .modal-title{font-size:15px;font-weight:700;margin-bottom:20px;color:var(--acc);font-family:'JetBrains Mono',monospace;}
 .modal-handle{width:40px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 20px;}
 @media(min-width:600px){.modal-handle{display:none;}}
@@ -126,7 +145,12 @@ select.search option{background:var(--s1);}
 .form-ctrl:focus{border-color:var(--acc);}
 textarea.form-ctrl{resize:vertical;min-height:80px;}
 select.form-ctrl option{background:var(--s1);}
+.rec-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.rec-btn{padding:8px 4px;border:1px solid var(--border2);border-radius:8px;background:transparent;color:var(--t2);font-size:12px;cursor:pointer;transition:all .15s;text-align:center;}
+.rec-btn:hover{border-color:var(--acc);color:var(--acc);}
+.rec-btn.active{background:var(--acc-dim);border-color:var(--acc);color:var(--acc);}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
+
 .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:10px;color:var(--t4);}
 .empty-icon{font-size:36px;opacity:.4;}.empty-txt{font-size:13px;}
 .loading{display:flex;align-items:center;justify-content:center;padding:48px;gap:10px;color:var(--t3);font-size:13px;}
@@ -164,11 +188,7 @@ select.form-ctrl option{background:var(--s1);}
 <div class="overlay" id="overlay" onclick="toggleSB()"></div>
 <div class="app">
   <div class="sidebar" id="sidebar">
-    <div class="sb-hdr">
-      <div class="sb-logo">🤖</div>
-      <div class="sb-brand">WMT Junior</div>
-      <div class="sb-badge">Admin</div>
-    </div>
+    <div class="sb-hdr"><div class="sb-logo">🤖</div><div class="sb-brand">WMT Junior</div><div class="sb-badge">Admin</div></div>
     <div class="sb-live"><div class="dot"></div><div class="sb-live-txt">Live</div></div>
     <div class="sb-sec">Monitor</div>
     <div class="nav-item active" onclick="go('chats',this)"><span class="nav-icon">💬</span>Chat Logs</div>
@@ -200,7 +220,7 @@ select.form-ctrl option{background:var(--s1);}
           <option value="">All Categories</option>
           <option value="job">Job</option><option value="hobby">Hobby</option>
           <option value="memory">Memory</option><option value="personality">Personality</option>
-          <option value="girl_info">မမ အကြောင်း</option><option value="girl_memory">မမ Memories</option>
+          <option value="girl_info">မမ Info</option><option value="girl_memory">မမ Memory</option>
           <option value="other">Other</option>
         </select>
       </div>
@@ -221,6 +241,8 @@ select.form-ctrl option{background:var(--s1);}
     </div>
   </div>
 </div>
+
+<!-- KB MODAL -->
 <div class="modal-overlay" id="kb-modal" onclick="closeIfBg(event,'kb-modal')">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -229,7 +251,8 @@ select.form-ctrl option{background:var(--s1);}
     <div class="form-group"><label class="form-lbl">Category</label>
       <select class="form-ctrl" id="kb-cat">
         <option value="job">Job / ကုမ္ပဏီ</option><option value="hobby">Hobby / ဝါသနာ</option>
-        <option value="memory">Memory</option><option value="personality">Personality</option><option value="girl_info">မမ အကြောင်း</option><option value="girl_memory">မမ Memories</option>
+        <option value="memory">Memory</option><option value="personality">Personality</option>
+        <option value="girl_info">မမ Info</option><option value="girl_memory">မမ Memory</option>
         <option value="other">Other</option>
       </select></div>
     <div class="form-group"><label class="form-lbl">Title</label><input type="text" class="form-ctrl" id="kb-title" placeholder="e.g. ကုမ္ပဏီ အမည်"></div>
@@ -240,11 +263,23 @@ select.form-ctrl option{background:var(--s1);}
     </div>
   </div>
 </div>
+
+<!-- SCHEDULE MODAL -->
 <div class="modal-overlay" id="sch-modal" onclick="closeIfBg(event,'sch-modal')">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">Add Scheduled Message</div>
+    <div class="modal-title" id="sch-modal-ttl">Add Scheduled Message</div>
+    <input type="hidden" id="sch-edit-id">
     <div class="form-group"><label class="form-lbl">Send At</label><input type="datetime-local" class="form-ctrl" id="sch-time"></div>
+    <div class="form-group">
+      <label class="form-lbl">Recurrence</label>
+      <div class="rec-grid">
+        <div class="rec-btn active" data-rec="once" onclick="setRec('once')">Once</div>
+        <div class="rec-btn" data-rec="daily" onclick="setRec('daily')">Daily</div>
+        <div class="rec-btn" data-rec="weekly" onclick="setRec('weekly')">Weekly</div>
+        <div class="rec-btn" data-rec="monthly" onclick="setRec('monthly')">Monthly</div>
+      </div>
+    </div>
     <div class="form-group"><label class="form-lbl">Message</label><textarea class="form-ctrl" id="sch-msg" placeholder="Bot က မမကို ဘာပြောမည်..."></textarea></div>
     <div class="form-group"><label class="form-lbl">Context (Admin မှတ်ချက်)</label><textarea class="form-ctrl" id="sch-ctx" placeholder="မှတ်ချက်..." style="min-height:60px"></textarea></div>
     <div class="modal-actions">
@@ -253,10 +288,11 @@ select.form-ctrl option{background:var(--s1);}
     </div>
   </div>
 </div>
+
 <div class="toast" id="toast"></div>
 <script>
 const W=window.location.origin;
-let TOKEN='',chats=[],kbs=[],schs=[];
+let TOKEN='',chats=[],kbs=[],schs=[],curRec='once';
 function doLogin(){const v=document.getElementById('tok').value.trim();if(!v)return;TOKEN=v;localStorage.setItem('wmtk',v);initApp();}
 function doLogout(){localStorage.removeItem('wmtk');TOKEN='';location.reload();}
 async function initApp(){
@@ -273,6 +309,8 @@ function go(name,el){
   if(window.innerWidth<=768)toggleSB();
 }
 function toggleSB(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('open');}
+
+// ── CHATS
 async function loadChats(){
   document.getElementById('chat-body').innerHTML='<div class="loading"><div class="spin"></div>Loading...</div>';
   const r=await api('/api/chats');if(!r.ok)return;chats=await r.json();renderChats(chats);
@@ -282,7 +320,7 @@ function renderChats(logs){
   document.getElementById('chat-meta').textContent=logs.length+' messages';
   if(!logs.length){el.innerHTML='<div class="empty"><div class="empty-icon">💬</div><div class="empty-txt">No messages yet</div></div>';return;}
   const grouped={};
-  [...logs].reverse().forEach(m=>{
+  logs.forEach(m=>{
     const d=new Date(m.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
     if(!grouped[d])grouped[d]=[];grouped[d].push(m);
   });
@@ -292,15 +330,23 @@ function renderChats(logs){
     msgs.forEach(m=>{
       const isU=m.role==='user';
       const t=new Date(m.created_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-      h+=\`<div class="msg-row \${isU?'user':'bot'}"><div class="msg-av \${isU?'usr-av':'bot-av'}">\${isU?'👩':'🤖'}</div><div><div class="msg-bubble">\${esc(m.message)}</div><div class="msg-time">\${t}</div></div></div>\`;
+      h+=\`<div class="msg-row \${isU?'user':'bot'}">
+        <div class="msg-av \${isU?'usr-av':'bot-av'}">\${isU?'👩':'🤖'}</div>
+        <div class="msg-body">
+          <div class="msg-bubble">\${esc(m.message)}</div>
+          <div class="msg-time">\${t}</div>
+        </div>
+      </div>\`;
     });
   }
   h+='</div>';el.innerHTML=h;el.scrollTop=el.scrollHeight;
 }
 function filterChats(){const q=document.getElementById('chat-q').value.toLowerCase();renderChats(q?chats.filter(c=>c.message.toLowerCase().includes(q)):chats);}
+
+// ── KB
 async function loadKB(){const r=await api('/api/kb');if(!r.ok)return;kbs=await r.json();renderKB(kbs);}
-const catC={job:'cat-job',hobby:'cat-hobby',memory:'cat-memory',personality:'cat-personality',other:'cat-other','girl_info':'cat-girl','girl_memory':'cat-gmem'};
-const catL={job:'Job',hobby:'Hobby',memory:'Memory',personality:'Personality',other:'Other','girl_info':'မမ Info','girl_memory':'မမ Memory'};
+const catC={job:'cat-job',hobby:'cat-hobby',memory:'cat-memory',personality:'cat-personality',girl_info:'cat-girl',girl_memory:'cat-gmem',other:'cat-other'};
+const catL={job:'Job',hobby:'Hobby',memory:'Memory',personality:'Personality',girl_info:'မမ Info',girl_memory:'မမ Memory',other:'Other'};
 function renderKB(items){
   const el=document.getElementById('kb-body');
   document.getElementById('kb-meta').textContent=items.length+' entries';
@@ -319,25 +365,85 @@ async function saveKB(){
   closeModal('kb-modal');toast('Saved','ok');loadKB();
 }
 async function delKB(id){if(!confirm('Delete?'))return;const r=await api(\`/api/kb/\${id}\`,{method:'DELETE'});if(!r.ok)return toast('Error','err');toast('Deleted','ok');loadKB();}
+
+// ── SCHEDULES
 async function loadSchedules(){const r=await api('/api/schedules');if(!r.ok)return;schs=await r.json();renderSchedules(schs);}
+const recLabel={once:'Once',daily:'Daily 🔁',weekly:'Weekly 🔁',monthly:'Monthly 🔁'};
 function renderSchedules(items){
   const el=document.getElementById('sch-body');
   document.getElementById('sch-meta').textContent=items.filter(s=>!s.is_sent).length+' pending';
   if(!items.length){el.innerHTML='<div class="empty"><div class="empty-icon">⏰</div><div class="empty-txt">No schedules yet</div></div>';return;}
   el.innerHTML='<div class="sch-list">'+items.map(s=>{
     const d=new Date(s.send_at);
-    return\`<div class="sch-card \${s.is_sent?'sent':''}"><div class="sch-timebox"><div class="sch-date-txt">\${d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</div><div class="sch-time-txt">\${d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</div></div><div class="sch-info"><div class="sch-msg-txt">\${esc(s.message)}</div>\${s.context?\`<div class="sch-ctx-txt">📝 \${esc(s.context)}</div>\`:''}</div><div class="status-pill \${s.is_sent?'pill-sent':'pill-pending'}">\${s.is_sent?'Sent':'Pending'}</div>\${!s.is_sent?\`<button class="icon-btn del" onclick="delSch('\${s.id}')">✕</button>\`:''}</div>\`;
+    const rec=s.recurrence||'once';
+    return\`<div class="sch-card \${s.is_sent&&rec==='once'?'sent':''}">
+      <div class="sch-timebox">
+        <div class="sch-date-txt">\${d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</div>
+        <div class="sch-time-txt">\${d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</div>
+      </div>
+      <div class="sch-info">
+        <div class="sch-msg-txt">\${esc(s.message)}</div>
+        \${s.context?\`<div class="sch-ctx-txt">📝 \${esc(s.context)}</div>\`:''}
+        \${rec!=='once'?\`<div class="sch-rec">↻ \${recLabel[rec]}</div>\`:''}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+        <div class="status-pill \${s.is_sent&&rec==='once'?'pill-sent':'pill-pending'}">\${s.is_sent&&rec==='once'?'Sent':'Pending'}</div>
+        <div class="sch-actions">
+          \${!s.is_sent?\`<button class="icon-btn" onclick="editSch('\${s.id}')" title="Edit">✏️</button>\`:''}
+          <button class="icon-btn del" onclick="delSch('\${s.id}')" title="Delete">🗑</button>
+        </div>
+      </div>
+    </div>\`;
   }).join('')+'</div>';
 }
-function openSchModal(){const d=new Date(Date.now()+3600000);const p=n=>String(n).padStart(2,'0');document.getElementById('sch-time').value=\`\${d.getFullYear()}-\${p(d.getMonth()+1)}-\${p(d.getDate())}T\${p(d.getHours())}:\${p(d.getMinutes())}\`;document.getElementById('sch-msg').value='';document.getElementById('sch-ctx').value='';document.getElementById('sch-modal').classList.add('open');}
-async function saveSchedule(){
-  const t=document.getElementById('sch-time').value,m=document.getElementById('sch-msg').value.trim(),c=document.getElementById('sch-ctx').value.trim();
-  if(!t||!m)return toast('Time နဲ့ Message ထည့်ပါ','err');
-  const r=await api('/api/schedules',{method:'POST',body:JSON.stringify({message:m,context:c,send_at:new Date(t).toISOString()})});
-  if(!r.ok)return toast('Error: '+await r.text(),'err');
-  closeModal('sch-modal');toast('Scheduled','ok');loadSchedules();
+
+function setRec(val){
+  curRec=val;
+  document.querySelectorAll('.rec-btn').forEach(b=>b.classList.toggle('active',b.dataset.rec===val));
 }
-async function delSch(id){if(!confirm('Cancel?'))return;const r=await api(\`/api/schedules/\${id}\`,{method:'DELETE'});if(!r.ok)return toast('Error','err');toast('Cancelled','ok');loadSchedules();}
+
+function openSchModal(){
+  const d=new Date(Date.now()+3600000);const p=n=>String(n).padStart(2,'0');
+  document.getElementById('sch-edit-id').value='';
+  document.getElementById('sch-modal-ttl').textContent='Add Scheduled Message';
+  document.getElementById('sch-time').value=\`\${d.getFullYear()}-\${p(d.getMonth()+1)}-\${p(d.getDate())}T\${p(d.getHours())}:\${p(d.getMinutes())}\`;
+  document.getElementById('sch-msg').value='';
+  document.getElementById('sch-ctx').value='';
+  setRec('once');
+  document.getElementById('sch-modal').classList.add('open');
+}
+
+function editSch(id){
+  const s=schs.find(x=>x.id===id);if(!s)return;
+  const d=new Date(s.send_at);const p=n=>String(n).padStart(2,'0');
+  document.getElementById('sch-edit-id').value=id;
+  document.getElementById('sch-modal-ttl').textContent='Edit Schedule';
+  document.getElementById('sch-time').value=\`\${d.getFullYear()}-\${p(d.getMonth()+1)}-\${p(d.getDate())}T\${p(d.getHours())}:\${p(d.getMinutes())}\`;
+  document.getElementById('sch-msg').value=s.message;
+  document.getElementById('sch-ctx').value=s.context||'';
+  setRec(s.recurrence||'once');
+  document.getElementById('sch-modal').classList.add('open');
+}
+
+async function saveSchedule(){
+  const id=document.getElementById('sch-edit-id').value;
+  const t=document.getElementById('sch-time').value;
+  const m=document.getElementById('sch-msg').value.trim();
+  const c=document.getElementById('sch-ctx').value.trim();
+  if(!t||!m)return toast('Time နဲ့ Message ထည့်ပါ','err');
+  const body={message:m,context:c,send_at:new Date(t).toISOString(),recurrence:curRec};
+  const r=await api(id?\`/api/schedules/\${id}\`:'/api/schedules',{method:id?'PATCH':'POST',body:JSON.stringify(body)});
+  if(!r.ok)return toast('Error: '+await r.text(),'err');
+  closeModal('sch-modal');toast(id?'Updated':'Scheduled','ok');loadSchedules();
+}
+
+async function delSch(id){
+  if(!confirm('Delete this schedule?'))return;
+  const r=await api(\`/api/schedules/\${id}\`,{method:'DELETE'});
+  if(!r.ok)return toast('Error','err');toast('Deleted','ok');loadSchedules();
+}
+
+// ── CONFIG
 async function loadConfig(){
   const r=await api('/api/config');if(!r.ok)return;const cfg=await r.json();
   const el=document.getElementById('cfg-body');
@@ -346,6 +452,8 @@ async function loadConfig(){
 }
 async function toggleCfg(k,el){const on=el.classList.contains('on');el.classList.toggle('on');const r=await api('/api/config',{method:'PATCH',body:JSON.stringify({key:k,value:on?'false':'true'})});if(!r.ok){el.classList.toggle('on');toast('Error','err');}else toast('Updated','ok');}
 async function editCfg(k,v){const n=prompt(\`\${k}:\`,v);if(n===null)return;const r=await api('/api/config',{method:'PATCH',body:JSON.stringify({key:k,value:n})});if(!r.ok)return toast('Error','err');toast('Updated','ok');loadConfig();}
+
+// ── UTILS
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function closeIfBg(e,id){if(e.target===document.getElementById(id))closeModal(id);}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
