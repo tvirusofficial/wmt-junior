@@ -151,6 +151,7 @@ select.form-ctrl option{background:var(--s1);}
 .rec-btn.active{background:var(--acc-dim);border-color:var(--acc);color:var(--acc);}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
 
+.load-more-hint{text-align:center;font-size:11px;color:var(--t4);padding:8px;font-family:'JetBrains Mono',monospace;}
 .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:10px;color:var(--t4);}
 .empty-icon{font-size:36px;opacity:.4;}.empty-txt{font-size:13px;}
 .loading{display:flex;align-items:center;justify-content:center;padding:48px;gap:10px;color:var(--t3);font-size:13px;}
@@ -207,7 +208,7 @@ select.form-ctrl option{background:var(--s1);}
         <button class="btn-out" onclick="loadChats()">↻ Refresh</button>
       </div>
       <div class="toolbar"><input type="text" class="search" id="chat-q" placeholder="Search messages..." oninput="filterChats()"></div>
-      <div class="scroll-body" id="chat-body"><div class="loading"><div class="spin"></div>Loading...</div></div>
+      <div class="scroll-body" id="chat-body" onscroll="onChatScroll()"><div class="loading"><div class="spin"></div>Loading...</div></div>
     </div>
     <div class="tab" id="tab-kb">
       <div class="pg-hdr">
@@ -311,20 +312,40 @@ function go(name,el){
 function toggleSB(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('open');}
 
 // ── CHATS
-async function loadChats(){
-  document.getElementById('chat-body').innerHTML='<div class="loading"><div class="spin"></div>Loading...</div>';
-  const r=await api('/api/chats');if(!r.ok)return;chats=await r.json();renderChats(chats);
+let chatOffset=0,chatHasMore=true,chatLoading=false,totalLoaded=0;
+async function loadChats(reset=true){
+  if(reset){
+    chatOffset=0;chatHasMore=true;chats=[];totalLoaded=0;
+    document.getElementById('chat-body').innerHTML='<div class="loading"><div class="spin"></div>Loading...</div>';
+  }
+  if(!chatHasMore||chatLoading)return;
+  chatLoading=true;
+  const r=await api(\`/api/chats?limit=100&offset=\${chatOffset}\`);
+  chatLoading=false;
+  if(!r.ok)return;
+  const batch=await r.json();
+  if(batch.length<100)chatHasMore=false;
+  // batch is desc order — reverse to get asc for display, prepend to existing
+  const sorted=[...batch].reverse();
+  chats=[...sorted,...chats];
+  totalLoaded=chats.length;
+  chatOffset+=batch.length;
+  renderChats(chats,reset);
 }
-function renderChats(logs){
+function renderChats(logs,scrollToBottom=true){
   const el=document.getElementById('chat-body');
-  document.getElementById('chat-meta').textContent=logs.length+' messages';
-  if(!logs.length){el.innerHTML='<div class="empty"><div class="empty-icon">💬</div><div class="empty-txt">No messages yet</div></div>';return;}
+  const q=document.getElementById('chat-q').value.toLowerCase();
+  const filtered=q?logs.filter(c=>c.message.toLowerCase().includes(q)):logs;
+  document.getElementById('chat-meta').textContent=totalLoaded+(chatHasMore?'+':'')+' messages';
+  if(!filtered.length){el.innerHTML='<div class="empty"><div class="empty-icon">💬</div><div class="empty-txt">No messages yet</div></div>';return;}
+  const prevH=el.scrollHeight;
   const grouped={};
-  logs.forEach(m=>{
+  filtered.forEach(m=>{
     const d=new Date(m.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
     if(!grouped[d])grouped[d]=[];grouped[d].push(m);
   });
   let h='<div class="chat-list">';
+  if(chatHasMore)h+='<div class="load-more-hint">↑ Scroll up to load more</div>';
   for(const[date,msgs]of Object.entries(grouped)){
     h+=\`<div class="date-lbl">\${date}</div>\`;
     msgs.forEach(m=>{
@@ -339,9 +360,16 @@ function renderChats(logs){
       </div>\`;
     });
   }
-  h+='</div>';el.innerHTML=h;el.scrollTop=el.scrollHeight;
+  h+='</div>';
+  el.innerHTML=h;
+  if(scrollToBottom){el.scrollTop=el.scrollHeight;}
+  else{el.scrollTop=el.scrollHeight-prevH;}
 }
-function filterChats(){const q=document.getElementById('chat-q').value.toLowerCase();renderChats(q?chats.filter(c=>c.message.toLowerCase().includes(q)):chats);}
+function filterChats(){renderChats(chats,true);}
+function onChatScroll(){
+  const el=document.getElementById('chat-body');
+  if(el.scrollTop<80&&chatHasMore&&!chatLoading)loadChats(false);
+}
 
 // ── KB
 async function loadKB(){const r=await api('/api/kb');if(!r.ok)return;kbs=await r.json();renderKB(kbs);}
