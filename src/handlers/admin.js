@@ -8,6 +8,7 @@ import {
   getAllKB, addKBEntry, updateKBEntry, deleteKBEntry,
   getAllSchedules, addSchedule, updateSchedule, deleteSchedule,
   getAllConfig, setConfig,
+  getFlaggedMessages, clearFlag,
 } from "../services/supabase.js";
 import ADMIN_HTML from "../admin-html.js";
 
@@ -108,6 +109,16 @@ export async function handleAdmin(request, env) {
     const workerUrl = `https://${url.hostname}/webhook`;
     const { setWebhook } = await import("../services/telegram.js");
     return json(await setWebhook(env, workerUrl));
+  }
+
+  // Flagged messages
+  if (path === "/api/flagged" && request.method === "GET") {
+    return json(await getFlaggedMessages(env));
+  }
+  if (path.startsWith("/api/flagged/") && request.method === "DELETE") {
+    const id = path.split("/api/flagged/")[1];
+    await clearFlag(env, id);
+    return json({ success: true });
   }
 
   return json({ error: "Not found" }, 404);
