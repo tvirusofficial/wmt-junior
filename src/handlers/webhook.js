@@ -5,11 +5,14 @@
 import { isAllowedUser, isValidWebhookSecret } from "../middleware/auth.js";
 import { extractMessage, sendMessage, sendTyping } from "../services/telegram.js";
 import { getRecentSessionHistory, saveChatLog, getAllKB } from "../services/supabase.js";
-import { generateReply } from "../services/gemini.js";
+import { generateReply, detectAdminFlag } from "../services/gemini.js";
 import { buildSystemPrompt } from "../system-prompt.js";
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 export async function handleWebhook(request, env) {
-  // ── Security Layer 1: Webhook secret check
   if (!isValidWebhookSecret(request, env)) {
     console.warn("Invalid webhook secret");
     return new Response("OK", { status: 200 });
@@ -22,7 +25,6 @@ export async function handleWebhook(request, env) {
 
   const { userId, chatId, text } = msg;
 
-  // ── Security Layer 2: Telegram ID whitelist
   if (!isAllowedUser(userId, env)) {
     console.warn(`Unauthorized access attempt from user: ${userId}`);
     return new Response("OK", { status: 200 });
@@ -30,21 +32,35 @@ export async function handleWebhook(request, env) {
 
   await sendTyping(env, chatId);
 
+  // 1-2 sec natural delay before replying
+  const delay = 1000 + Math.random() * 1000;
+  await sleep(delay);
+
   try {
-    // ── Fetch KB + Recent session history (last 30 min)
     const [kbEntries, chatHistory] = await Promise.all([
       getAllKB(env),
       getRecentSessionHistory(env, userId, 20),
     ]);
 
     const systemPrompt = buildSystemPrompt(kbEntries);
-
     const messages = [...chatHistory, { role: "user", content: text }];
 
+    // Generate reply first
     const reply = await generateReply(env, systemPrompt, messages);
 
+    // Only call Gemini flag detection if message contains relevant keywords
+    // Saves API usage — most messages won't need flag detection
+    const FLAG_KEYWORDS = ["ဆရာ့ကို", "ဆရာ သိစေ", "ဆရာ့ဆီ", "ဆရာ့ သိစေ", "ဆရာ့အတွက်", "ဆရာ ပြောပေး", "ဆရာ့ကို ပြောပေး", "ဆရာ့ကို ပို့", "ဆရာ မသိနဲ့", "ဆရာ့ကို မပြောနဲ့"];
+    const mightBeFlag = FLAG_KEYWORDS.some(kw => text.includes(kw));
+
+    let flagForAdmin = false;
+    if (mightBeFlag) {
+      const flagResult = await detectAdminFlag(env, text);
+      flagForAdmin = flagResult !== false;
+    }
+
     await Promise.all([
-      saveChatLog(env, { userId, role: "user", message: text }),
+      saveChatLog(env, { userId, role: "user", message: text, flagForAdmin }),
       saveChatLog(env, { userId, role: "assistant", message: reply }),
     ]);
 
