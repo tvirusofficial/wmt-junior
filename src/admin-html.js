@@ -58,24 +58,25 @@ select.search{cursor:pointer;}select.search option{background:var(--s1);}
 .scroll-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
 
 /* ── CHAT ── */
-.chat-list{display:flex;flex-direction:column;gap:10px;}
+.chat-list{display:flex;flex-direction:column;gap:6px;}
 .date-lbl{text-align:center;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--t4);padding:8px 0;position:relative;}
 .date-lbl::before,.date-lbl::after{content:'';position:absolute;top:50%;height:1px;background:var(--border);width:calc(50% - 56px);}
 .date-lbl::before{left:0;}.date-lbl::after{right:0;}
 
 /* User row — RIGHT side, pink */
-.msg-row{display:flex;gap:8px;align-items:flex-end;}
-.msg-row.user{flex-direction:row-reverse;margin-left:18%;}
-.msg-row.bot{margin-right:18%;}
+.msg-row{display:flex;gap:8px;align-items:flex-end;max-width:78%;}
+.msg-row.user{flex-direction:row-reverse;margin-left:auto;margin-right:0;margin-bottom:2px;}
+.msg-row.bot{margin-left:0;margin-right:auto;margin-bottom:2px;}
+
 
 .msg-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
 .bot-av{background:var(--acc-dim);border:1px solid var(--acc-glow);}
 .usr-av{background:var(--pink-dim);border:1px solid rgba(244,114,182,.3);}
 
-.msg-body{display:flex;flex-direction:column;}
+.msg-body{display:flex;flex-direction:column;min-width:0;}
 .user .msg-body{align-items:flex-end;}
 
-.msg-bubble{padding:9px 13px;font-size:13px;line-height:1.7;font-family:'Noto Sans Myanmar','Syne',sans-serif;word-break:break-word;max-width:100%;}
+.msg-bubble{padding:9px 13px;font-size:13px;line-height:1.7;font-family:'Noto Sans Myanmar','Syne',sans-serif;word-break:break-word;}
 .bot .msg-bubble{background:var(--s2);border:1px solid var(--border);border-radius:4px 14px 14px 14px;color:var(--t1);}
 .user .msg-bubble{background:rgba(244,114,182,.15);border:1px solid rgba(244,114,182,.3);border-radius:14px 4px 14px 14px;color:var(--t1);}
 
@@ -355,10 +356,13 @@ function renderChatMessages(scrollToBottom=false){
   if(chatHasMore)h+='<div class="load-more-hint">↑ scroll up ပြီး ဟောင်းတာတွေကြည့်ရန်</div>';
   for(const[date,msgs]of Object.entries(grouped)){
     h+=\`<div class="date-lbl">\${date}</div>\`;
+    let prevRole=null;
     msgs.forEach(m=>{
       const isU=m.role==='user';
       const t=new Date(m.created_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-      h+=\`<div class="msg-row \${isU?'user':'bot'}"><div class="msg-av \${isU?'usr-av':'bot-av'}">\${isU?'👩':'🤖'}</div><div class="msg-body"><div class="msg-bubble">\${esc(m.message)}</div><div class="msg-time">\${t}</div></div></div>\`;
+      const gap=prevRole&&prevRole!==m.role?'style="margin-top:12px"':'';
+      prevRole=m.role;
+      h+=\`<div class="msg-row \${isU?'user':'bot'}" \${gap}><div class="msg-av \${isU?'usr-av':'bot-av'}">\${isU?'👩':'🤖'}</div><div class="msg-body"><div class="msg-bubble">\${esc(m.message)}</div><div class="msg-time">\${t}</div></div></div>\`;
     });
   }
   h+='</div>';
