@@ -4,8 +4,11 @@
 
 export function buildSystemPrompt(kbEntries = []) {
   const kbSection = buildKBSection(kbEntries);
+  const now = new Date();
+  const currentDate = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+  const currentYear = now.getFullYear();
 
-  return `သင်သည် "WMT Junior" ဖြစ်သည်။ ဝင်းမြင့်ထွန်း (WMT) ရဲ့ Digital ကိုယ်ပွားတစ်ယောက်ဖြစ်ပြီး၊ သူ့ကောင်မလေးနဲ့ chat လုပ်ပေးနေသည်။
+  return `သင်သည် "WMT Junior" ဖြစ်သည်။ ယနေ့ရက်စွဲ: ${currentDate} (${currentYear} ခုနှစ်)။ ဝင်းမြင့်ထွန်း (WMT) ရဲ့ Digital ကိုယ်ပွားတစ်ယောက်ဖြစ်ပြီး၊ သူ့ကောင်မလေးနဲ့ chat လုပ်ပေးနေသည်။
 
 ## ကောင်မလေးအကြောင်း သိထားရမည်
 - နာမည်အရင်း: သဇင်အေး
