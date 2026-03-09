@@ -16,7 +16,7 @@ const BASE = (env) => `${env.SUPABASE_URL}/rest/v1`;
 
 // ─── CHAT LOGS ─────────────────────────────────────────────
 
-export async function saveChatLog(env, { userId, role, message, sessionId }) {
+export async function saveChatLog(env, { userId, role, message, sessionId, flagForAdmin = false }) {
   const res = await fetch(`${BASE(env)}/wmt_chat_logs`, {
     method: "POST",
     headers: getHeaders(env),
@@ -25,9 +25,28 @@ export async function saveChatLog(env, { userId, role, message, sessionId }) {
       role,
       message,
       session_id: sessionId || null,
+      flag_for_admin: flagForAdmin,
     }),
   });
   if (!res.ok) console.error("saveChatLog error:", await res.text());
+}
+
+export async function getFlaggedMessages(env) {
+  const res = await fetch(
+    `${BASE(env)}/wmt_chat_logs?flag_for_admin=eq.true&order=created_at.desc&limit=100`,
+    { headers: getHeaders(env) }
+  );
+  if (!res.ok) return [];
+  return res.json();
+}
+
+export async function clearFlag(env, id) {
+  const res = await fetch(`${BASE(env)}/wmt_chat_logs?id=eq.${id}`, {
+    method: "PATCH",
+    headers: getHeaders(env),
+    body: JSON.stringify({ flag_for_admin: false }),
+  });
+  if (!res.ok) throw new Error(await res.text());
 }
 
 export async function getChatHistory(env, userId, limit = 20) {
