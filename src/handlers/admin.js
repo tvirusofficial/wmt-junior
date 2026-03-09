@@ -42,9 +42,7 @@ export async function handleAdmin(request, env) {
 
   // Chat Logs
   if (path === "/api/chats" && request.method === "GET") {
-    const limit = parseInt(url.searchParams.get("limit") || "100");
-    const offset = parseInt(url.searchParams.get("offset") || "0");
-    return json(await getAllChatLogs(env, limit, offset));
+    return json(await getAllChatLogs(env, 100));
   }
 
   // Knowledge Base
