@@ -8,3 +8,6 @@ crons = ["*/5 * * * *"]
 
 [vars]
 ENVIRONMENT = "production"
+SUPABASE_URL = "https://jdpvbpiiwrmrykviiqhw.supabase.co"
+ALLOWED_USER_IDS = "1524908105, 6678270537"
+ADMIN_ID = "1524908105"
