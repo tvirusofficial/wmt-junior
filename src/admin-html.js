@@ -152,6 +152,10 @@ select.form-ctrl option{background:var(--s1);}
 .rec-btn.active{background:var(--acc-dim);border-color:var(--acc);color:var(--acc);}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
 
+.voice-player{display:flex;align-items:center;gap:8px;margin-top:6px;}
+.voice-btn{background:var(--acc-dim);border:1px solid var(--acc-glow);color:var(--acc);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;flex-shrink:0;}
+.voice-btn:hover{background:var(--acc);color:#fff;}
+.voice-waveform{font-size:10px;color:var(--t4);font-family:'JetBrains Mono',monospace;}
 .load-more-hint{text-align:center;font-size:11px;color:var(--t4);padding:8px;font-family:'JetBrains Mono',monospace;}
 .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:10px;color:var(--t4);}
 .empty-icon{font-size:36px;opacity:.4;}.empty-txt{font-size:13px;}
@@ -362,7 +366,8 @@ function renderChatMessages(scrollToBottom=false){
       const t=new Date(m.created_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
       const gap=prevRole&&prevRole!==m.role?'style="margin-top:12px"':'';
       prevRole=m.role;
-      h+=\`<div class="msg-row \${isU?'user':'bot'}" \${gap}><div class="msg-av \${isU?'usr-av':'bot-av'}">\${isU?'👩':'🤖'}</div><div class="msg-body"><div class="msg-bubble">\${esc(m.message)}</div><div class="msg-time">\${t}</div></div></div>\`;
+      const voiceHtml=m.voice_url?\`<div class="voice-player"><button class="voice-btn" onclick="playVoice(this,'\${m.voice_url}')" title="Play voice">▶</button><span class="voice-waveform">🎤 voice message</span></div>\`:'';
+      h+=\`<div class="msg-row \${isU?'user':'bot'}" \${gap}><div class="msg-av \${isU?'usr-av':'bot-av'}">\${isU?'👩':'🤖'}</div><div class="msg-body"><div class="msg-bubble">\${esc(m.message)}\${voiceHtml}</div><div class="msg-time">\${t}</div></div></div>\`;
     });
   }
   h+='</div>';
@@ -499,6 +504,18 @@ function closeIfBg(e,id){if(e.target===document.getElementById(id))closeModal(id
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 let _tt;
 function toast(msg,type='ok'){const t=document.getElementById('toast');t.textContent=msg;t.className=\`toast \${type} show\`;clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('show'),2500);}
+let currentAudio=null;
+function playVoice(btn,key){
+  if(currentAudio){currentAudio.pause();currentAudio=null;document.querySelectorAll('.voice-btn').forEach(b=>b.textContent='▶');}
+  const url=\`/api/voice/\${encodeURIComponent(key)}\`;
+  const audio=new Audio(url);
+  currentAudio=audio;
+  btn.textContent='⏸';
+  audio.play();
+  audio.onended=()=>{btn.textContent='▶';currentAudio=null;};
+  audio.onerror=()=>{btn.textContent='▶';currentAudio=null;toast('Voice load failed','err');};
+}
+
 const saved=localStorage.getItem('wmtk');if(saved){TOKEN=saved;initApp();}
 </script>
 </body>
