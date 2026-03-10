@@ -61,7 +61,6 @@ async function createCache(env, systemPrompt) {
     body: JSON.stringify({
       model: "models/gemini-2.5-flash",
       system_instruction: { parts: [{ text: systemPrompt }] },
-      contents: [{ role: "user", parts: [{ text: "init" }] }, { role: "model", parts: [{ text: "ready" }] }],
       ttl: `${TTL_SECONDS}s`,
     }),
   });
@@ -71,6 +70,7 @@ async function createCache(env, systemPrompt) {
     return null;
   }
   const data = await res.json();
+  console.log("Cache API response:", JSON.stringify(data));
   return data.name || null;
 }
 
