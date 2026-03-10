@@ -95,7 +95,10 @@ export async function getOrCreateCache(env, systemPrompt) {
   // 3. Create new cache
   console.log("Creating new Gemini context cache...");
   const cacheName = await createCache(env, systemPrompt);
-  if (!cacheName) return null;
+  if (!cacheName) {
+    console.warn("Cache creation failed — falling back to no cache");
+    return null;
+  }
 
   memCacheName = cacheName;
   memCacheTs = Date.now();
@@ -156,7 +159,11 @@ export async function generateReply(env, systemPrompt, chatHistory) {
   const candidate = data.candidates?.[0];
   const text = candidate?.content?.parts?.[0]?.text;
   const finishReason = candidate?.finishReason;
-  console.log("Gemini finishReason:", finishReason, "| cached:", !!cacheName);
+  const usageMetadata = data.usageMetadata || {};
+  console.log("Gemini finishReason:", finishReason, 
+    "| explicit cache:", !!cacheName,
+    "| cachedTokens:", usageMetadata.cachedContentTokenCount || 0,
+    "| inputTokens:", usageMetadata.promptTokenCount || 0);
 
   if (!text) {
     console.error("Empty response:", JSON.stringify(data));
