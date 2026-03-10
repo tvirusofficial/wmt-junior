@@ -6,6 +6,10 @@ compatibility_flags = ["nodejs_compat"]
 [triggers]
 crons = ["*/5 * * * *"]
 
+[[r2_buckets]]
+binding = "VOICE_BUCKET"
+bucket_name = "wmt-junior-voices"
+
 [vars]
 ENVIRONMENT = "production"
 SUPABASE_URL = "https://jdpvbpiiwrmrykviiqhw.supabase.co"
