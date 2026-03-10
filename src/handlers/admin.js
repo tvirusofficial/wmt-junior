@@ -11,6 +11,7 @@ import {
 } from "../services/supabase.js";
 import ADMIN_HTML from "../admin-html.js";
 import { kbCache } from "../index.js";
+import { invalidateCache } from "../services/gemini.js";
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -137,7 +138,16 @@ export async function handleAdmin(request, env) {
   }
   if (path === "/api/cache/reset" && request.method === "POST") {
     kbCache.reset();
-    return json({ success: true, message: "Cache cleared" });
+    invalidateCache();
+    // Also clear from Supabase
+    await fetch(`${env.SUPABASE_URL}/rest/v1/wmt_gemini_cache?id=eq.1`, {
+      method: "DELETE",
+      headers: {
+        apikey: env.SUPABASE_SERVICE_KEY,
+        Authorization: `Bearer ${env.SUPABASE_SERVICE_KEY}`,
+      },
+    });
+    return json({ success: true, message: "KB + Gemini cache cleared" });
   }
 
   return json({ error: "Not found" }, 404);
