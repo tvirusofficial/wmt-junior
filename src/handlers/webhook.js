@@ -21,7 +21,6 @@ export async function handleWebhook(request, env) {
 
   const { userId, chatId, text, voice } = msg;
 
-  // Must have text or voice
   if (!text && !voice) return new Response("OK", { status: 200 });
 
   if (!isAllowedUser(userId, env)) {
@@ -40,17 +39,30 @@ export async function handleWebhook(request, env) {
     const systemPrompt = buildSystemPrompt(kbEntries);
     let reply;
     let savedText;
+    let voiceUrl = null;
 
     if (voice) {
-      // Voice message flow
+      // Download audio
       const fileUrl = await getFileUrl(env, voice.file_id);
       if (!fileUrl) throw new Error("Could not get voice file URL");
 
       const audioBase64 = await downloadFileAsBase64(fileUrl);
       if (!audioBase64) throw new Error("Could not download voice file");
 
+      // Save to R2
+      if (env.VOICE_BUCKET) {
+        const key = `voices/${userId}/${Date.now()}.ogg`;
+        const audioBytes = Uint8Array.from(atob(audioBase64), c => c.charCodeAt(0));
+        await env.VOICE_BUCKET.put(key, audioBytes, {
+          httpMetadata: { contentType: voice.mime_type || "audio/ogg" },
+        });
+        voiceUrl = key; // Store R2 key
+      }
+
+      // Generate reply from voice
       reply = await generateReplyFromVoice(env, systemPrompt, chatHistory, audioBase64, voice.mime_type || "audio/ogg");
       savedText = "[🎤 Voice message]";
+
     } else {
       // Text message flow
       const messages = [...chatHistory, { role: "user", content: text }];
@@ -59,7 +71,7 @@ export async function handleWebhook(request, env) {
     }
 
     await Promise.all([
-      saveChatLog(env, { userId, role: "user", message: savedText }),
+      saveChatLog(env, { userId, role: "user", message: savedText, voiceUrl }),
       saveChatLog(env, { userId, role: "assistant", message: reply }),
     ]);
 
