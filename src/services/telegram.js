@@ -52,5 +52,25 @@ export function extractMessage(update) {
     chatId: msg.chat?.id,
     text: msg.text || "",
     date: msg.date,
+    voice: msg.voice || null,  // { file_id, duration, mime_type }
   };
+}
+
+export async function getFileUrl(env, fileId) {
+  const res = await fetch(`${TG_API(env.TELEGRAM_BOT_TOKEN)}/getFile?file_id=${fileId}`);
+  if (!res.ok) return null;
+  const data = await res.json();
+  const filePath = data?.result?.file_path;
+  if (!filePath) return null;
+  return `https://api.telegram.org/file/bot${env.TELEGRAM_BOT_TOKEN}/${filePath}`;
+}
+
+export async function downloadFileAsBase64(url) {
+  const res = await fetch(url);
+  if (!res.ok) return null;
+  const buffer = await res.arrayBuffer();
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
 }
