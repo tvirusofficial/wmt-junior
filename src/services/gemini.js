@@ -42,3 +42,48 @@ export async function generateReply(env, systemPrompt, chatHistory) {
   }
   return text;
 }
+
+// Handle voice message — transcribe + reply in one Gemini call
+export async function generateReplyFromVoice(env, systemPrompt, chatHistory, audioBase64, mimeType = "audio/ogg") {
+  const contents = chatHistory.map((msg) => ({
+    role: msg.role === "assistant" ? "model" : "user",
+    parts: [{ text: msg.content }],
+  }));
+
+  // Add voice as the latest user message
+  contents.push({
+    role: "user",
+    parts: [
+      {
+        inline_data: {
+          mime_type: mimeType,
+          data: audioBase64,
+        },
+      },
+      {
+        text: "မမ voice message ပို့လာတယ်။ audio ထဲမှာ ဘာပြောသလဲ နားထောင်ပြီး ပုံမှန်အတိုင်း မမ့်ကို ဖြေပေး။",
+      },
+    ],
+  });
+
+  const res = await fetch(`${GEMINI_API}?key=${env.GEMINI_API_KEY}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      system_instruction: { parts: [{ text: systemPrompt }] },
+      contents,
+      generationConfig: { temperature: 1.0, maxOutputTokens: 2048, topP: 0.95 },
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    console.error("Gemini voice error:", err);
+    throw new Error("Gemini voice API failed");
+  }
+
+  const data = await res.json();
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) return "အင်း... voice message ကြားရတာ မရှင်းဘူး၊ ထပ်ပြောပေးနော် 😅";
+  return text;
+}
