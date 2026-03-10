@@ -243,7 +243,16 @@ select.form-ctrl option{background:var(--s1);}
     </div>
 <div class="tab" id="tab-config">
       <div class="pg-hdr"><div class="pg-title">⚙️ Config</div></div>
-      <div class="scroll-body" id="cfg-body" style="padding-top:16px"><div class="loading"><div class="spin"></div>Loading...</div></div>
+      <div class="scroll-body" style="padding-top:16px">
+        <div style="padding:0 16px 16px">
+          <div style="background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px">
+            <div style="font-size:11px;color:var(--t4);margin-bottom:8px;font-family:'JetBrains Mono',monospace;letter-spacing:.05em">KB CACHE</div>
+            <div id="cache-status" style="font-size:13px;color:var(--t2);margin-bottom:12px;line-height:1.6">Loading...</div>
+            <button class="btn-out" onclick="resetCache()">🗑 Clear Cache</button>
+          </div>
+        </div>
+        <div id="cfg-body"><div class="loading"><div class="spin"></div>Loading...</div></div>
+      </div>
     </div>
   </div>
 </div>
