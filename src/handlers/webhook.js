@@ -63,7 +63,7 @@ export async function handleWebhook(request, env) {
         voiceUrl = key; // Store R2 key
       }
 
-      // Generate reply from voice
+      // Pass full history for context, but Gemini rules prevent verbatim repetition
       reply = await generateReplyFromVoice(env, systemPrompt, chatHistory, audioBase64, voice.mime_type || "audio/ogg");
       savedText = "[🎤 Voice message]";
 
