@@ -507,7 +507,7 @@ function toast(msg,type='ok'){const t=document.getElementById('toast');t.textCon
 let currentAudio=null;
 function playVoice(btn,key){
   if(currentAudio){currentAudio.pause();currentAudio=null;document.querySelectorAll('.voice-btn').forEach(b=>b.textContent='▶');}
-  const url=\`/api/voice/\${encodeURIComponent(key)}\`;
+  const url=\`/api/voice/\${encodeURIComponent(key)}?t=\${encodeURIComponent(TOKEN)}\`;
   const audio=new Audio(url);
   currentAudio=audio;
   btn.textContent='⏸';
