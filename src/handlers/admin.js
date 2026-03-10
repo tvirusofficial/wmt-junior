@@ -38,6 +38,21 @@ export async function handleAdmin(request, env) {
     return new Response(ADMIN_HTML, { headers: { "Content-Type": "text/html; charset=utf-8" } });
   }
 
+  // Voice file serve from R2 — needs token in URL query param
+  if (path.startsWith("/api/voice/") && request.method === "GET") {
+    const tokenParam = url.searchParams.get("t");
+    if (!tokenParam || tokenParam !== env.ADMIN_SECRET_TOKEN) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+    const key = decodeURIComponent(path.replace("/api/voice/", ""));
+    const obj = await env.VOICE_BUCKET.get(key);
+    if (!obj) return new Response("Not found", { status: 404 });
+    const headers = new Headers();
+    headers.set("Content-Type", obj.httpMetadata?.contentType || "audio/ogg");
+    headers.set("Cache-Control", "private, max-age=3600");
+    return new Response(obj.body, { headers });
+  }
+
   if (!isValidAdminToken(request, env)) return json({ error: "Unauthorized" }, 401);
 
   // Chat Logs
@@ -108,17 +123,6 @@ export async function handleAdmin(request, env) {
     const workerUrl = `https://${url.hostname}/webhook`;
     const { setWebhook } = await import("../services/telegram.js");
     return json(await setWebhook(env, workerUrl));
-  }
-
-  // Voice file serve from R2
-  if (path.startsWith("/api/voice/") && request.method === "GET") {
-    const key = decodeURIComponent(path.replace("/api/voice/", ""));
-    const obj = await env.VOICE_BUCKET.get(key);
-    if (!obj) return new Response("Not found", { status: 404 });
-    const headers = new Headers();
-    headers.set("Content-Type", obj.httpMetadata?.contentType || "audio/ogg");
-    headers.set("Cache-Control", "private, max-age=3600");
-    return new Response(obj.body, { headers });
   }
 
   return json({ error: "Not found" }, 404);
