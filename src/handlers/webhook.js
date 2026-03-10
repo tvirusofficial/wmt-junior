@@ -6,7 +6,7 @@ import { isAllowedUser, isValidWebhookSecret } from "../middleware/auth.js";
 import { extractMessage, sendMessage, sendTyping, getFileUrl, downloadFileAsBase64 } from "../services/telegram.js";
 import { getRecentSessionHistory, saveChatLog, getAllKB } from "../services/supabase.js";
 import { kbCache } from "../index.js";
-import { generateReply, generateReplyFromVoice } from "../services/gemini.js";
+import { generateReply, generateReplyFromVoice, invalidateCache } from "../services/gemini.js";
 import { buildSystemPrompt } from "../system-prompt.js";
 
 export async function handleWebhook(request, env) {
