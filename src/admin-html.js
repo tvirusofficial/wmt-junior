@@ -305,7 +305,7 @@ async function initApp(){
   const r=await api('/api/chats');
   if(!r.ok){document.getElementById('login-err').style.display='block';TOKEN='';return;}
   document.getElementById('login-screen').style.display='none';
-  await fetchMoreChats(true);loadKB();loadSchedules();loadConfig();
+  await fetchMoreChats(true);loadKB();loadSchedules();loadConfig();loadCacheStatus();
 }
 async function api(path,opts={}){return fetch(W+path,{...opts,headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN,...(opts.headers||{})}});}
 function go(name,el){
@@ -489,7 +489,7 @@ async function delSch(id){
 }
 
 // ── CONFIG
-async function loadConfig(){
+async function loadConfig(){loadCacheStatus();
   const r=await api('/api/config');if(!r.ok)return;const cfg=await r.json();
   const el=document.getElementById('cfg-body');
   if(!cfg.length){el.innerHTML='<div class="empty"><div class="empty-icon">⚙️</div><div class="empty-txt">No config</div></div>';return;}
@@ -514,6 +514,23 @@ function playVoice(btn,key){
   audio.play();
   audio.onended=()=>{btn.textContent='▶';currentAudio=null;};
   audio.onerror=()=>{btn.textContent='▶';currentAudio=null;toast('Voice load failed','err');};
+}
+
+async function loadCacheStatus(){
+  const r=await api('/api/cache');if(!r.ok)return;
+  const d=await r.json();
+  const el=document.getElementById('cache-status');
+  if(!el)return;
+  const t=d.lastUpdated?new Date(d.lastUpdated).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'—';
+  el.innerHTML=d.cached
+    ?\`<span style="color:var(--acc)">● Cached</span> — \${d.entries} entries · updated \${t} · TTL 1hr\`
+    :\`<span style="color:var(--t4)">○ No cache</span> — will fetch on next message\`;
+}
+async function resetCache(){
+  const r=await api('/api/cache/reset',{method:'POST'});
+  if(!r.ok)return toast('Error','err');
+  toast('Cache cleared','ok');
+  loadCacheStatus();
 }
 
 const saved=localStorage.getItem('wmtk');if(saved){TOKEN=saved;initApp();}
