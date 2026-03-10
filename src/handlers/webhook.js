@@ -5,6 +5,7 @@
 import { isAllowedUser, isValidWebhookSecret } from "../middleware/auth.js";
 import { extractMessage, sendMessage, sendTyping, getFileUrl, downloadFileAsBase64 } from "../services/telegram.js";
 import { getRecentSessionHistory, saveChatLog, getAllKB } from "../services/supabase.js";
+import { kbCache } from "../index.js";
 import { generateReply, generateReplyFromVoice } from "../services/gemini.js";
 import { buildSystemPrompt } from "../system-prompt.js";
 
@@ -31,10 +32,13 @@ export async function handleWebhook(request, env) {
   await sendTyping(env, chatId);
 
   try {
-    const [kbEntries, chatHistory] = await Promise.all([
-      getAllKB(env),
-      getRecentSessionHistory(env, userId, 20),
-    ]);
+    // Use cached KB if available (1 hour TTL)
+    let kbEntries = kbCache.get();
+    if (!kbEntries) {
+      kbEntries = await getAllKB(env);
+      kbCache.set(kbEntries);
+    }
+    const chatHistory = await getRecentSessionHistory(env, userId, 20);
 
     const systemPrompt = buildSystemPrompt(kbEntries);
     let reply;
