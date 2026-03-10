@@ -10,6 +10,7 @@ import {
   getAllConfig, setConfig,
 } from "../services/supabase.js";
 import ADMIN_HTML from "../admin-html.js";
+import { kbCache } from "../index.js";
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -123,6 +124,20 @@ export async function handleAdmin(request, env) {
     const workerUrl = `https://${url.hostname}/webhook`;
     const { setWebhook } = await import("../services/telegram.js");
     return json(await setWebhook(env, workerUrl));
+  }
+
+  // Cache status + reset
+  if (path === "/api/cache" && request.method === "GET") {
+    return json({
+      cached: kbCache.get() !== null,
+      entries: kbCache.data?.length || 0,
+      lastUpdated: kbCache.lastUpdated(),
+      ttlMinutes: 60,
+    });
+  }
+  if (path === "/api/cache/reset" && request.method === "POST") {
+    kbCache.reset();
+    return json({ success: true, message: "Cache cleared" });
   }
 
   return json({ error: "Not found" }, 404);
