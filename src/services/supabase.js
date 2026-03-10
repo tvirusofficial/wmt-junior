@@ -16,7 +16,7 @@ const BASE = (env) => `${env.SUPABASE_URL}/rest/v1`;
 
 // ─── CHAT LOGS ─────────────────────────────────────────────
 
-export async function saveChatLog(env, { userId, role, message, sessionId }) {
+export async function saveChatLog(env, { userId, role, message, sessionId, voiceUrl = null }) {
   const res = await fetch(`${BASE(env)}/wmt_chat_logs`, {
     method: "POST",
     headers: getHeaders(env),
@@ -25,6 +25,7 @@ export async function saveChatLog(env, { userId, role, message, sessionId }) {
       role,
       message,
       session_id: sessionId || null,
+      voice_url: voiceUrl,
     }),
   });
   if (!res.ok) console.error("saveChatLog error:", await res.text());
