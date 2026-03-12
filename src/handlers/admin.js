@@ -166,11 +166,13 @@ export async function handleAdmin(request, env) {
   if (path === "/api/messages/reply" && request.method === "POST") {
     const { content } = await request.json();
     if (!content) return json({ error: "content required" }, 400);
+    // Wrap message naturally as bot speaking for WMT
+    const wrapped = `မမရေ၊ ဆရာက "${content}" လို့ ပြောလိုက်တယ်နော် 🙂`;
     // Send to မမ via Telegram
     const userIds = (env.ALLOWED_USER_IDS || "").split(",").map(s => s.trim()).filter(id => id !== env.ADMIN_ID);
     for (const uid of userIds) {
-      await sendMessage(env, uid, content);
-      await saveChatLog(env, { userId: uid, role: "assistant", message: content });
+      await sendMessage(env, uid, wrapped);
+      await saveChatLog(env, { userId: uid, role: "assistant", message: wrapped });
     }
     await saveMessage(env, { direction: "to_user", content });
     return json({ success: true });
