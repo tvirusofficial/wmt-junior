@@ -169,7 +169,7 @@ export async function handleAdmin(request, env) {
     // Wrap message naturally as bot speaking for WMT
     const wrapped = `မမရေ၊ ဆရာက "${content}" လို့ ပြောလိုက်တယ်နော် 🙂`;
     // Send to မမ via Telegram
-    const userIds = (env.ALLOWED_USER_IDS || "").split(",").map(s => s.trim()).filter(id => id !== env.ADMIN_ID);
+    const userIds = (env.ALLOWED_USER_IDS || "").split(",").map(s => s.trim()).filter(Boolean);
     for (const uid of userIds) {
       await sendMessage(env, uid, wrapped);
       await saveChatLog(env, { userId: uid, role: "assistant", message: wrapped });
