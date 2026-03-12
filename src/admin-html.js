@@ -258,7 +258,7 @@ select.form-ctrl option{background:var(--s1);}
         <div class="loading"><div class="spin"></div>Loading...</div>
       </div>
       <div style="padding:12px 16px;border-top:1px solid var(--border);background:var(--s1);display:flex;gap:10px;align-items:flex-end;flex-shrink:0">
-        <textarea id="wmt-chatbox" rows="2" placeholder="WMT → မမ ကို ပြောမည်..." style="flex:1;background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:10px 14px;color:var(--t1);font-family:inherit;font-size:14px;resize:none;outline:none;line-height:1.5;max-height:120px" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendWMTReply();}"></textarea>
+        <textarea id="wmt-chatbox" rows="2" placeholder="WMT → Junior ကို ပြောမည်..." style="flex:1;background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:10px 14px;color:var(--t1);font-family:inherit;font-size:14px;resize:none;outline:none;line-height:1.5;max-height:120px" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendWMTReply();}"></textarea>
         <button onclick="sendWMTReply()" style="background:var(--acc);border:none;color:#fff;border-radius:50%;width:40px;height:40px;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;line-height:1">➤</button>
       </div>
     </div>
