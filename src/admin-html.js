@@ -255,7 +255,7 @@ select.form-ctrl option{background:var(--s1);}
         <div class="pg-title">💌 Messages</div>
         <button class="btn-primary" onclick="openReplyModal()">✏️ မမကို ပြောမည်</button>
       </div>
-      <div class="scroll-body" id="msg-body" style="padding:16px">
+      <div class="scroll-body" id="msg-body" style="padding:16px;display:flex;flex-direction:column">
         <div class="loading"><div class="spin"></div>Loading...</div>
       </div>
     </div>
@@ -551,23 +551,30 @@ async function loadMessages(){
   const msgs=await r.json();
   const pending=msgs.filter(m=>m.direction==='to_admin'&&m.status==='pending');
   const badge=document.getElementById('msg-badge');
-  if(badge){badge.textContent=pending.length;badge.style.display=pending.length?'':'none';}
+  if(badge){badge.textContent=pending.length;badge.style.display=pending.length?'inline':'none';}
   const body=document.getElementById('msg-body');if(!body)return;
-  if(!msgs.length){body.innerHTML='<div style="color:var(--t4);text-align:center;padding:40px 0;font-size:13px">Messages မရှိသေးဘူး</div>';return;}
-  body.innerHTML=msgs.map(m=>{
-    const t=new Date(m.created_at).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
-    const dir=m.direction==='to_admin'?'💌 မမ → ကိုကို':'📨 ကိုကို → မမ';
-    const statusPill=m.status==='pending'?'<span style="color:var(--acc);font-size:11px">● pending</span>':m.status==='sent'?'<span style="color:#4ade80;font-size:11px">✓ sent</span>':'<span style="color:var(--t4);font-size:11px">✓ read</span>';
-    return \`<div class="msg-card \${m.status==='pending'?'pending':'read'}">
-      <div class="msg-dir">\${dir}</div>
-      <div class="msg-content">\${esc(m.content)}</div>
-      <div class="msg-meta"><span>\${t}</span>\${statusPill}</div>
-      <div class="msg-actions">
-        \${m.direction==='to_admin'&&m.status==='pending'?\`<button class="btn-out" onclick="markRead(\${m.id})">✓ Read</button>\`:''}
-        <button class="btn-out" style="color:#f87171;border-color:#f8717150" onclick="deleteMsg(\${m.id})">🗑</button>
+  if(!msgs.length){body.innerHTML='<div style="color:var(--t4);text-align:center;padding:60px 0;font-size:13px">Messages မရှိသေးဘူး</div>';return;}
+  // Messenger style — oldest first
+  const sorted=[...msgs].reverse();
+  body.innerHTML=sorted.map(m=>{
+    const isUser=m.direction==='to_admin'; // မမ က ပို့တာ = right side
+    const t=new Date(m.created_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    const isNew=m.status==='pending';
+    return \`<div style="display:flex;flex-direction:column;align-items:\${isUser?'flex-end':'flex-start'};margin-bottom:12px">
+      <div style="max-width:75%;background:\${isUser?'var(--acc-dim)':'var(--s2)'};border:1px solid \${isUser?'var(--acc-glow)':'var(--border)'};border-radius:\${isUser?'16px 16px 4px 16px':'16px 16px 16px 4px'};padding:10px 14px;position:relative">
+        \${isNew?'<div style="position:absolute;top:-4px;right:-4px;width:8px;height:8px;background:var(--acc);border-radius:50%"></div>':''}
+        <div style="font-size:11px;color:\${isUser?'var(--acc)':'var(--t4)'};margin-bottom:4px;font-family:'JetBrains Mono',monospace">\${isUser?'မမ':'ကိုကို'}</div>
+        <div style="font-size:14px;color:var(--t1);line-height:1.6;word-break:break-word">\${esc(m.content)}</div>
+        <div style="font-size:10px;color:var(--t4);margin-top:6px;text-align:right">\${t}\${!isUser?' ✓':''}</div>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:4px">
+        \${isUser&&isNew?\`<button onclick="markRead(\${m.id})" style="background:none;border:none;color:var(--acc);font-size:11px;cursor:pointer;padding:0">✓ Read</button>\`:''}
+        <button onclick="deleteMsg(\${m.id})" style="background:none;border:none;color:var(--t4);font-size:11px;cursor:pointer;padding:0">🗑</button>
       </div>
     </div>\`;
   }).join('');
+  // Scroll to bottom
+  body.scrollTop=body.scrollHeight;
 }
 
 async function markRead(id){
