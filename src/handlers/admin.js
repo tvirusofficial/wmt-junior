@@ -5,10 +5,11 @@
 import { isValidAdminToken } from "../middleware/auth.js";
 import { sendMessage } from "../services/telegram.js";
 import {
-  getAllChatLogs,
+  getAllChatLogs, saveChatLog,
   getAllKB, addKBEntry, updateKBEntry, deleteKBEntry,
   getAllSchedules, addSchedule, updateSchedule, deleteSchedule,
   getAllConfig, setConfig,
+  getAllMessages, markMessageRead, markMessageSent, deleteMessage, saveMessage,
 } from "../services/supabase.js";
 import ADMIN_HTML from "../admin-html.js";
 import { kbCache } from "../index.js";
