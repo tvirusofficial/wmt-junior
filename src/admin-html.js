@@ -210,6 +210,7 @@ select.form-ctrl option{background:var(--s1);}
     <div class="nav-item" onclick="go('kb',this)"><span class="nav-icon">📚</span>Knowledge Base</div>
     <div class="nav-item" onclick="go('schedule',this)"><span class="nav-icon">⏰</span>Schedules</div>
     <div class="sb-sec">System</div>
+<div class="nav-item" onclick="go('messages',this)"><span class="nav-icon">💌</span>Messages<span class="badge" id="msg-badge" style="display:none;margin-left:auto">0</span></div>
 <div class="nav-item" onclick="go('config',this)"><span class="nav-icon">⚙️</span>Config</div>
     <div class="sb-foot"><button class="logout-btn" onclick="doLogout()">Logout</button></div>
   </div>
@@ -249,7 +250,17 @@ select.form-ctrl option{background:var(--s1);}
       </div>
       <div class="scroll-body" id="sch-body"><div class="loading"><div class="spin"></div>Loading...</div></div>
     </div>
-<div class="tab" id="tab-config">
+<div class="tab" id="tab-messages">
+      <div class="pg-hdr">
+        <div class="pg-title">💌 Messages</div>
+        <button class="btn-primary" onclick="openReplyModal()">✏️ မမကို ပြောမည်</button>
+      </div>
+      <div class="scroll-body" id="msg-body" style="padding:16px">
+        <div class="loading"><div class="spin"></div>Loading...</div>
+      </div>
+    </div>
+
+    <div class="tab" id="tab-config">
       <div class="pg-hdr"><div class="pg-title">⚙️ Config</div></div>
       <div class="scroll-body" style="padding-top:16px">
         <div style="padding:0 16px 16px">
@@ -330,6 +341,8 @@ function go(name,el){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');el.classList.add('active');
   if(window.innerWidth<=768)toggleSB();
+  if(name==='messages')loadMessages();
+  if(name==='config')loadConfig();
 }
 function toggleSB(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('open');}
 
