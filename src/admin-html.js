@@ -333,7 +333,7 @@ async function initApp(){
   const r=await api('/api/chats');
   if(!r.ok){document.getElementById('login-err').style.display='block';TOKEN='';return;}
   document.getElementById('login-screen').style.display='none';
-  await fetchMoreChats(true);loadKB();loadSchedules();loadConfig();loadCacheStatus();loadMessages();
+  await fetchMoreChats(true);loadKB();loadSchedules();loadConfig();loadCacheStatus();loadMsgBadge();
 }
 async function api(path,opts={}){return fetch(W+path,{...opts,headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN,...(opts.headers||{})}});}
 function go(name,el){
@@ -544,6 +544,14 @@ function playVoice(btn,key){
   audio.play();
   audio.onended=()=>{btn.textContent='▶';currentAudio=null;};
   audio.onerror=()=>{btn.textContent='▶';currentAudio=null;toast('Voice load failed','err');};
+}
+
+async function loadMsgBadge(){
+  const r=await api('/api/messages');if(!r.ok)return;
+  const msgs=await r.json();
+  const pending=msgs.filter(m=>m.direction==='to_admin'&&m.status==='pending').length;
+  const badge=document.getElementById('msg-badge');
+  if(badge){badge.textContent=pending;badge.style.display=pending?'':'none';}
 }
 
 async function loadMessages(){
