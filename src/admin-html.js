@@ -156,6 +156,14 @@ select.form-ctrl option{background:var(--s1);}
 .voice-btn{background:var(--acc-dim);border:1px solid var(--acc-glow);color:var(--acc);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;flex-shrink:0;}
 .voice-btn:hover{background:var(--acc);color:#fff;}
 .voice-waveform{font-size:10px;color:var(--t4);font-family:'JetBrains Mono',monospace;}
+.badge{background:var(--acc);color:#fff;border-radius:99px;padding:1px 6px;font-size:10px;font-family:'JetBrains Mono',monospace;margin-left:auto;}
+.msg-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;}
+.msg-card.pending{border-left:3px solid var(--acc);}
+.msg-card.read{opacity:.6;}
+.msg-dir{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--t4);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;}
+.msg-content{font-size:14px;color:var(--t1);line-height:1.6;margin-bottom:10px;}
+.msg-meta{font-size:11px;color:var(--t4);display:flex;align-items:center;gap:12px;}
+.msg-actions{display:flex;gap:8px;margin-top:10px;}
 .load-more-hint{text-align:center;font-size:11px;color:var(--t4);padding:8px;font-family:'JetBrains Mono',monospace;}
 .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:10px;color:var(--t4);}
 .empty-icon{font-size:36px;opacity:.4;}.empty-txt{font-size:13px;}
@@ -314,7 +322,7 @@ async function initApp(){
   const r=await api('/api/chats');
   if(!r.ok){document.getElementById('login-err').style.display='block';TOKEN='';return;}
   document.getElementById('login-screen').style.display='none';
-  await fetchMoreChats(true);loadKB();loadSchedules();loadConfig();loadCacheStatus();
+  await fetchMoreChats(true);loadKB();loadSchedules();loadConfig();loadCacheStatus();loadMessages();
 }
 async function api(path,opts={}){return fetch(W+path,{...opts,headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN,...(opts.headers||{})}});}
 function go(name,el){
@@ -523,6 +531,71 @@ function playVoice(btn,key){
   audio.play();
   audio.onended=()=>{btn.textContent='▶';currentAudio=null;};
   audio.onerror=()=>{btn.textContent='▶';currentAudio=null;toast('Voice load failed','err');};
+}
+
+async function loadMessages(){
+  const r=await api('/api/messages');if(!r.ok)return;
+  const msgs=await r.json();
+  const pending=msgs.filter(m=>m.direction==='to_admin'&&m.status==='pending');
+  const badge=document.getElementById('msg-badge');
+  if(badge){badge.textContent=pending.length;badge.style.display=pending.length?'':'none';}
+  const body=document.getElementById('msg-body');if(!body)return;
+  if(!msgs.length){body.innerHTML='<div style="color:var(--t4);text-align:center;padding:40px 0;font-size:13px">Messages မရှိသေးဘူး</div>';return;}
+  body.innerHTML=msgs.map(m=>{
+    const t=new Date(m.created_at).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+    const dir=m.direction==='to_admin'?'💌 မမ → ကိုကို':'📨 ကိုကို → မမ';
+    const statusPill=m.status==='pending'?'<span style="color:var(--acc);font-size:11px">● pending</span>':m.status==='sent'?'<span style="color:#4ade80;font-size:11px">✓ sent</span>':'<span style="color:var(--t4);font-size:11px">✓ read</span>';
+    return \`<div class="msg-card \${m.status==='pending'?'pending':'read'}">
+      <div class="msg-dir">\${dir}</div>
+      <div class="msg-content">\${esc(m.content)}</div>
+      <div class="msg-meta"><span>\${t}</span>\${statusPill}</div>
+      <div class="msg-actions">
+        \${m.direction==='to_admin'&&m.status==='pending'?\`<button class="btn-out" onclick="markRead(\${m.id})">✓ Read</button>\`:''}
+        <button class="btn-out" style="color:#f87171;border-color:#f8717150" onclick="deleteMsg(\${m.id})">🗑</button>
+      </div>
+    </div>\`;
+  }).join('');
+}
+
+async function markRead(id){
+  await api('/api/messages/read',{method:'POST',body:JSON.stringify({id})});
+  loadMessages();
+}
+
+async function deleteMsg(id){
+  await api(\`/api/messages/\${id}\`,{method:'DELETE'});
+  toast('Deleted','ok');
+  loadMessages();
+}
+
+let replyModal=null;
+function openReplyModal(){
+  const overlay=document.createElement('div');
+  overlay.className='modal-overlay';
+  overlay.id='reply-modal';
+  overlay.innerHTML=\`<div class="modal" style="max-height:60vh">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📨 မမကို ပြောမည်</div>
+    <div class="form-group" style="margin-top:16px">
+      <label class="form-lbl">Bot က မမဆီ ပို့မည့် message</label>
+      <textarea class="form-ctrl" id="reply-content" rows="4" placeholder="ဒီ message ကို bot က မမဆီ တိုက်ရိုက်ပို့မည်..." style="resize:vertical"></textarea>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn-primary" style="flex:1" onclick="sendReply()">📨 ပို့မည်</button>
+      <button class="btn-out" onclick="document.getElementById('reply-modal').remove()">Cancel</button>
+    </div>
+  </div>\`;
+  document.body.appendChild(overlay);
+}
+
+async function sendReply(){
+  const content=document.getElementById('reply-content')?.value?.trim();
+  if(!content)return toast('Message ရိုက်ပါ','err');
+  const r=await api('/api/messages/reply',{method:'POST',body:JSON.stringify({content})});
+  if(!r.ok)return toast('Error','err');
+  toast('ပို့ပြီ ✓','ok');
+  document.getElementById('reply-modal')?.remove();
+  loadMessages();
 }
 
 async function loadCacheStatus(){
