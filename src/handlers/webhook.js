@@ -74,11 +74,6 @@ export async function handleWebhook(request, env) {
       savedText = text;
     }
 
-    await Promise.all([
-      saveChatLog(env, { userId, role: "user", message: savedText, voiceUrl }),
-      saveChatLog(env, { userId, role: "assistant", message: reply }),
-    ]);
-
     // Bridge: extract [BRIDGE: ...] tag from Gemini reply
     const bridgeMatch = reply.match(/\[BRIDGE:\s*(.+?)\]/);
     if (bridgeMatch && bridgeMatch[1]?.trim()) {
@@ -88,8 +83,14 @@ export async function handleWebhook(request, env) {
       console.log("Bridge message saved:", wrapped);
     }
 
-    // Remove [BRIDGE: ...] tag from reply before sending to မမ
+    // Remove [BRIDGE: ...] tag from reply before saving + sending
     const cleanReply = reply.replace(/\s*\[BRIDGE:[^\]]*\]/g, "").trim();
+
+    await Promise.all([
+      saveChatLog(env, { userId, role: "user", message: savedText, voiceUrl }),
+      saveChatLog(env, { userId, role: "assistant", message: cleanReply }),
+    ]);
+
     await sendMessage(env, chatId, cleanReply);
 
   } catch (err) {
