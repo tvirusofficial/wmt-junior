@@ -99,27 +99,39 @@ export async function handleWebhook(request, env) {
 }
 
 // ── Bridge detection helpers
-const BRIDGE_PATTERNS = [
-  /ဆရာ့?ကို\s*(?:သွား)?ပြောပေး(.+)/,
-  /ဦးဝင်းမြင့်ထွန်းကို\s*(?:သွား)?ပြောပေး(.+)/,
-  /ကိုကိုကို\s*(?:သွား)?ပြောပေး(.+)/,
-  /ကိုကြီးကို\s*(?:သွား)?ပြောပေး(.+)/,
-  /သူ့ကို\s*(?:သွား)?ပြောပေး(.+)/,
-  /နင့်ဆရာကို\s*(?:သွား)?ပြောပေး(.+)/,
-  /ပြောပေး\s*(.+)\s*(?:လို့|ဆိုပြီး)?/,
-];
+const BRIDGE_TARGETS = ["ဆရာ", "ဦးဝင်းမြင့်ထွန်း", "ကိုကို", "ကိုကြီး", "နင့်ဆရာ", "သူ"];
+const BRIDGE_ACTIONS = ["ပြောပေး", "သွားပြောပေး", "ဆချပေး", "သိစေပေး", "ပြောလိုက်"];
 
 function isBridgeRequest(text) {
-  return BRIDGE_PATTERNS.some(p => p.test(text));
+  const t = text.replace(/\s+/g, "");
+  return BRIDGE_TARGETS.some(target =>
+    BRIDGE_ACTIONS.some(action => {
+      const keyword = (target + "ကို" + action).replace(/\s+/g, "");
+      const keyword2 = (target + "့ကို" + action).replace(/\s+/g, "");
+      return t.includes(keyword) || t.includes(keyword2);
+    })
+  );
 }
 
 function extractBridgeContent(text) {
-  for (const pattern of BRIDGE_PATTERNS) {
-    const match = text.match(pattern);
-    if (match && match[1]?.trim()) {
-      return match[1].trim();
+  // Try to get content before the bridge keyword
+  // e.g. "ချစ်တယ်လို့ ဆရာကို ပြောပေး" → "ချစ်တယ်လို့"
+  for (const target of BRIDGE_TARGETS) {
+    for (const action of BRIDGE_ACTIONS) {
+      const idx = text.indexOf(target);
+      if (idx > 0) {
+        const before = text.slice(0, idx).replace(/လို့\s*$|ဆိုပြီး\s*$/, "").trim();
+        if (before) return before;
+      }
+      // Content after action keyword
+      for (const act of BRIDGE_ACTIONS) {
+        const actIdx = text.indexOf(act);
+        if (actIdx !== -1) {
+          const after = text.slice(actIdx + act.length).trim();
+          if (after) return after;
+        }
+      }
     }
   }
-  // Fallback — save full message
   return text.trim();
 }
