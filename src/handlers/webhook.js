@@ -79,17 +79,18 @@ export async function handleWebhook(request, env) {
       saveChatLog(env, { userId, role: "assistant", message: reply }),
     ]);
 
-    // Bridge: detect if မမ wants to send message to admin
-    if (text && isBridgeRequest(text)) {
-      const extracted = extractBridgeContent(text);
-      if (extracted) {
-        const wrapped = `ဆရာရေ၊ မမက ဆရာ့ကို "${extracted}" လို့ ပြောပေးခိုင်းလိုက်လို့ပါ 💌`;
-        await saveMessage(env, { direction: "to_admin", content: wrapped });
-        console.log("Bridge message saved:", wrapped);
-      }
+    // Bridge: extract [BRIDGE: ...] tag from Gemini reply
+    const bridgeMatch = reply.match(/\[BRIDGE:\s*(.+?)\]/);
+    if (bridgeMatch && bridgeMatch[1]?.trim()) {
+      const bridgeContent = bridgeMatch[1].trim();
+      const wrapped = `ဆရာရေ၊ မမက "${bridgeContent}" လို့ ပြောပေးခိုင်းလိုက်လို့ပါ 💌`;
+      await saveMessage(env, { direction: "to_admin", content: wrapped });
+      console.log("Bridge message saved:", wrapped);
     }
 
-    await sendMessage(env, chatId, reply);
+    // Remove [BRIDGE: ...] tag from reply before sending to မမ
+    const cleanReply = reply.replace(/\s*\[BRIDGE:[^\]]*\]/g, "").trim();
+    await sendMessage(env, chatId, cleanReply);
 
   } catch (err) {
     console.error("Webhook handler error:", err);
@@ -115,7 +116,7 @@ function isBridgeRequest(text) {
   );
   if (hasTargetPattern) return true;
   // 2. Standalone "သွားပြောပေး" or "ပြောပေးဦး" — implicit bridge
-  const standalone = ["သွားပြောပေး", "သွားပြောပေးဦး", "သွားပြောလိုက်"];
+  const standalone = ["သွားပြောပေး", "သွားပြောပေးဦး", "သွားပြောလိုက်", "လို့ပြောပေး", "လို့သွားပြောပေး", "ပြောပေး"];
   return standalone.some(kw => t.includes(kw));
 }
 
