@@ -560,7 +560,7 @@ async function loadMessages(){
   const pending=msgs.filter(m=>m.direction==='to_admin'&&m.status==='pending');
   const badge=document.getElementById('msg-badge');
   if(badge){badge.textContent=pending.length;badge.style.display=pending.length?'inline':'none';}
-  const body=document.getElementById('msg-body');if(!body)return;
+  const body=document.getElementById('bridge-msg-body');if(!body)return;
   if(!msgs.length){body.innerHTML='<div style="color:var(--t4);text-align:center;padding:60px 0;font-size:13px">Messages မရှိသေးဘူး</div>';return;}
   // Messenger style — oldest first
   const sorted=[...msgs].reverse();
