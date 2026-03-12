@@ -253,10 +253,13 @@ select.form-ctrl option{background:var(--s1);}
     <div class="tab" id="tab-messages" style="flex-direction:column;height:100%">
       <div class="pg-hdr" style="flex-shrink:0">
         <div class="pg-title">💌 Messages</div>
-        <button class="btn-pri" onclick="openWMTReply()">✏️ WMT Reply</button>
       </div>
-      <div id="bridge-msg-body" class="scroll-body" style="flex:1;padding:16px;display:flex;flex-direction:column;gap:10px">
+      <div id="bridge-msg-body" class="scroll-body" style="flex:1;padding:16px 20px;display:flex;flex-direction:column;gap:14px">
         <div class="loading"><div class="spin"></div>Loading...</div>
+      </div>
+      <div style="padding:12px 16px;border-top:1px solid var(--border);background:var(--s1);display:flex;gap:10px;align-items:flex-end;flex-shrink:0">
+        <textarea id="wmt-chatbox" rows="2" placeholder="WMT → မမ ကို ပြောမည်..." style="flex:1;background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:10px 14px;color:var(--t1);font-family:inherit;font-size:14px;resize:none;outline:none;line-height:1.5;max-height:120px" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendWMTReply();}"></textarea>
+        <button onclick="sendWMTReply()" style="background:var(--acc);border:none;color:#fff;border-radius:50%;width:40px;height:40px;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;line-height:1">➤</button>
       </div>
     </div>
 
@@ -565,24 +568,34 @@ async function loadMessages(){
   // Messenger style — oldest first
   const sorted=[...msgs].reverse();
   body.innerHTML=sorted.map(m=>{
-    const isUser=m.direction==='to_admin'; // မမ က ပို့တာ = right side
+    // to_admin = WMT Junior (bot) ပို့တာ = ဘယ်ဘက်
+    // to_user  = WMT (ကိုကို) reply = ညာဘက်
+    const isWMT=m.direction==='to_user';
     const t=new Date(m.created_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
     const isNew=m.status==='pending';
-    return \`<div style="display:flex;flex-direction:column;align-items:\${isUser?'flex-end':'flex-start'};margin-bottom:12px">
-      <div style="max-width:75%;background:\${isUser?'var(--acc-dim)':'var(--s2)'};border:1px solid \${isUser?'var(--acc-glow)':'var(--border)'};border-radius:\${isUser?'16px 16px 4px 16px':'16px 16px 16px 4px'};padding:10px 14px;position:relative">
-        \${isNew?'<div style="position:absolute;top:-4px;right:-4px;width:8px;height:8px;background:var(--acc);border-radius:50%"></div>':''}
-        <div style="font-size:11px;color:\${isUser?'var(--acc)':'var(--t4)'};margin-bottom:4px;font-family:'JetBrains Mono',monospace">\${isUser?'မမ':'ကိုကို'}</div>
-        <div style="font-size:14px;color:var(--t1);line-height:1.6;word-break:break-word">\${esc(m.content)}</div>
-        <div style="font-size:10px;color:var(--t4);margin-top:6px;text-align:right">\${t}\${!isUser?' ✓':''}</div>
-      </div>
-      <div style="display:flex;gap:6px;margin-top:4px">
-        \${isUser&&isNew?\`<button onclick="markRead(\${m.id})" style="background:none;border:none;color:var(--acc);font-size:11px;cursor:pointer;padding:0">✓ Read</button>\`:''}
-        <button onclick="deleteMsg(\${m.id})" style="background:none;border:none;color:var(--t4);font-size:11px;cursor:pointer;padding:0">🗑</button>
+    const name=isWMT?'WMT':'WMT Junior';
+    return \`<div style="display:flex;flex-direction:column;align-items:\${isWMT?'flex-end':'flex-start'};gap:3px">
+      <div style="font-size:11px;color:var(--t4);padding:0 6px">\${name}\${isNew?' <span style="color:var(--acc)">●</span>':''}</div>
+      <div style="max-width:78%;background:\${isWMT?'var(--acc)':'var(--s2)'};color:\${isWMT?'#fff':'var(--t1)'};border:\${isWMT?'none':'1px solid var(--border)'};border-radius:\${isWMT?'16px 4px 16px 16px':'4px 16px 16px 16px'};padding:10px 14px;font-size:14px;line-height:1.65;word-break:break-word;white-space:pre-wrap">\${esc(m.content)}</div>
+      <div style="font-size:10px;color:var(--t4);padding:0 6px;display:flex;gap:8px;align-items:center">\${t}
+        \${isNew&&!isWMT?\`<button onclick="markRead(\${m.id})" style="background:none;border:none;color:var(--acc);font-size:10px;cursor:pointer;padding:0">✓ Read</button>\`:''}
+        <button onclick="deleteMsg(\${m.id})" style="background:none;border:none;color:var(--t4);font-size:10px;cursor:pointer;padding:0">🗑</button>
       </div>
     </div>\`;
   }).join('');
   // Scroll to bottom
   body.scrollTop=body.scrollHeight;
+}
+
+async function sendWMTReply(){
+  const input=document.getElementById('wmt-chatbox');
+  const content=input?.value?.trim();
+  if(!content)return toast('Message ရိုက်ပါ','err');
+  const r=await api('/api/messages/reply',{method:'POST',body:JSON.stringify({content})});
+  if(!r.ok)return toast('Error','err');
+  input.value='';
+  toast('မမဆီ ပို့ပြီ ✓','ok');
+  loadMessages();
 }
 
 async function markRead(id){
