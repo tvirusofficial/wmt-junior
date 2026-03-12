@@ -559,10 +559,19 @@ async function loadMsgBadge(){
 
 async function loadMessages(){
   const r=await api('/api/messages');if(!r.ok)return;
-  const msgs=await r.json();
-  const pending=msgs.filter(m=>m.direction==='to_admin'&&m.status==='pending');
+  let msgs=await r.json();
+  // Auto-read all pending when tab is open
+  const tabOpen=document.getElementById('tab-messages')?.classList.contains('active');
+  if(tabOpen){
+    const toRead=msgs.filter(m=>m.direction==='to_admin'&&m.status==='pending');
+    if(toRead.length){
+      await Promise.all(toRead.map(m=>api('/api/messages/read',{method:'POST',body:JSON.stringify({id:m.id})})));
+      msgs=msgs.map(m=>toRead.find(p=>p.id===m.id)?{...m,status:'read'}:m);
+    }
+  }
+  const pending=msgs.filter(m=>m.direction==='to_admin'&&m.status==='pending').length;
   const badge=document.getElementById('msg-badge');
-  if(badge){badge.textContent=pending.length;badge.style.display=pending.length?'inline':'none';}
+  if(badge){badge.textContent=pending;badge.style.display=pending?'':'none';}
   const body=document.getElementById('bridge-msg-body');if(!body)return;
   if(!msgs.length){body.innerHTML='<div style="color:var(--t4);text-align:center;padding:60px 0;font-size:13px">Messages မရှိသေးဘူး</div>';return;}
   // Messenger style — oldest first
