@@ -167,7 +167,7 @@ export async function handleAdmin(request, env) {
     const { content } = await request.json();
     if (!content) return json({ error: "content required" }, 400);
     // Wrap message naturally as bot speaking for WMT
-    const wrapped = `မမရေ၊ ဆရာက "${content}" လို့ ပြောလိုက်တယ်နော် 🙂`;
+    const wrapped = `မမရေ၊ ဆရာက "${content}" လို့ ပြောလိုက်တယ်`;
     // Send to မမ via Telegram
     const userIds = (env.ALLOWED_USER_IDS || "").split(",").map(s => s.trim()).filter(Boolean);
     for (const uid of userIds) {
