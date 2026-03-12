@@ -115,23 +115,22 @@ function isBridgeRequest(text) {
 }
 
 function extractBridgeContent(text) {
-  // Try to get content before the bridge keyword
-  // e.g. "ချစ်တယ်လို့ ဆရာကို ပြောပေး" → "ချစ်တယ်လို့"
-  for (const target of BRIDGE_TARGETS) {
-    for (const action of BRIDGE_ACTIONS) {
-      const idx = text.indexOf(target);
-      if (idx > 0) {
-        const before = text.slice(0, idx).replace(/လို့\s*$|ဆိုပြီး\s*$/, "").trim();
-        if (before) return before;
-      }
-      // Content after action keyword
-      for (const act of BRIDGE_ACTIONS) {
-        const actIdx = text.indexOf(act);
-        if (actIdx !== -1) {
-          const after = text.slice(actIdx + act.length).trim();
-          if (after) return after;
-        }
-      }
+  // Sort targets longest first to avoid "ဆရာ" matching inside "နင့်ဆရာ"
+  const sorted = [...BRIDGE_TARGETS].sort((a, b) => b.length - a.length);
+  for (const target of sorted) {
+    const idx = text.indexOf(target);
+    if (idx > 0) {
+      // Content before the target keyword
+      const before = text.slice(0, idx).replace(/လို့\s*$|ဆိုပြီး\s*$|\s*$/, "").trim();
+      if (before) return before;
+    }
+  }
+  // Fallback: content after action keyword
+  for (const act of BRIDGE_ACTIONS) {
+    const actIdx = text.indexOf(act);
+    if (actIdx !== -1) {
+      const after = text.slice(actIdx + act.length).trim();
+      if (after) return after;
     }
   }
   return text.trim();
