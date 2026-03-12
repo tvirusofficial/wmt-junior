@@ -4,7 +4,7 @@
 
 import { isAllowedUser, isValidWebhookSecret } from "../middleware/auth.js";
 import { extractMessage, sendMessage, sendTyping, getFileUrl, downloadFileAsBase64 } from "../services/telegram.js";
-import { getRecentSessionHistory, saveChatLog, getAllKB } from "../services/supabase.js";
+import { getRecentSessionHistory, saveChatLog, getAllKB, saveMessage } from "../services/supabase.js";
 import { kbCache } from "../index.js";
 import { generateReply, generateReplyFromVoice, invalidateCache } from "../services/gemini.js";
 import { buildSystemPrompt } from "../system-prompt.js";
@@ -79,6 +79,15 @@ export async function handleWebhook(request, env) {
       saveChatLog(env, { userId, role: "assistant", message: reply }),
     ]);
 
+    // Bridge: detect if မမ wants to send message to admin
+    if (text && isBridgeRequest(text)) {
+      const extracted = extractBridgeContent(text);
+      if (extracted) {
+        await saveMessage(env, { direction: "to_admin", content: extracted });
+        console.log("Bridge message saved:", extracted);
+      }
+    }
+
     await sendMessage(env, chatId, reply);
 
   } catch (err) {
@@ -87,4 +96,30 @@ export async function handleWebhook(request, env) {
   }
 
   return new Response("OK", { status: 200 });
+}
+
+// ── Bridge detection helpers
+const BRIDGE_PATTERNS = [
+  /ဆရာ့?ကို\s*(?:သွား)?ပြောပေး(.+)/,
+  /ဦးဝင်းမြင့်ထွန်းကို\s*(?:သွား)?ပြောပေး(.+)/,
+  /ကိုကိုကို\s*(?:သွား)?ပြောပေး(.+)/,
+  /ကိုကြီးကို\s*(?:သွား)?ပြောပေး(.+)/,
+  /သူ့ကို\s*(?:သွား)?ပြောပေး(.+)/,
+  /နင့်ဆရာကို\s*(?:သွား)?ပြောပေး(.+)/,
+  /ပြောပေး\s*(.+)\s*(?:လို့|ဆိုပြီး)?/,
+];
+
+function isBridgeRequest(text) {
+  return BRIDGE_PATTERNS.some(p => p.test(text));
+}
+
+function extractBridgeContent(text) {
+  for (const pattern of BRIDGE_PATTERNS) {
+    const match = text.match(pattern);
+    if (match && match[1]?.trim()) {
+      return match[1].trim();
+    }
+  }
+  // Fallback — save full message
+  return text.trim();
 }
