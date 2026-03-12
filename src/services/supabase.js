@@ -226,3 +226,58 @@ export async function setConfig(env, key, value) {
   });
   if (!res.ok) throw new Error(await res.text());
 }
+
+// ─── BRIDGE MESSAGES ───────────────────────────────────────
+
+export async function saveMessage(env, { direction, content }) {
+  const res = await fetch(`${BASE(env)}/wmt_messages`, {
+    method: "POST",
+    headers: getHeaders(env),
+    body: JSON.stringify({ direction, content, status: "pending" }),
+  });
+  if (!res.ok) console.error("saveMessage error:", await res.text());
+}
+
+export async function getPendingMessages(env, direction) {
+  const res = await fetch(
+    `${BASE(env)}/wmt_messages?direction=eq.${direction}&status=eq.pending&order=created_at.asc`,
+    { headers: getHeaders(env) }
+  );
+  if (!res.ok) return [];
+  return res.json();
+}
+
+export async function getAllMessages(env) {
+  const res = await fetch(
+    `${BASE(env)}/wmt_messages?order=created_at.desc&limit=50`,
+    { headers: getHeaders(env) }
+  );
+  if (!res.ok) return [];
+  return res.json();
+}
+
+export async function markMessageSent(env, id) {
+  const res = await fetch(`${BASE(env)}/wmt_messages?id=eq.${id}`, {
+    method: "PATCH",
+    headers: getHeaders(env),
+    body: JSON.stringify({ status: "sent" }),
+  });
+  if (!res.ok) console.error("markMessageSent error:", await res.text());
+}
+
+export async function markMessageRead(env, id) {
+  const res = await fetch(`${BASE(env)}/wmt_messages?id=eq.${id}`, {
+    method: "PATCH",
+    headers: getHeaders(env),
+    body: JSON.stringify({ status: "read" }),
+  });
+  if (!res.ok) console.error("markMessageRead error:", await res.text());
+}
+
+export async function deleteMessage(env, id) {
+  const res = await fetch(`${BASE(env)}/wmt_messages?id=eq.${id}`, {
+    method: "DELETE",
+    headers: getHeaders(env),
+  });
+  if (!res.ok) console.error("deleteMessage error:", await res.text());
+}
