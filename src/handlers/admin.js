@@ -3,6 +3,7 @@
  */
 
 import { isValidAdminToken } from "../middleware/auth.js";
+import { sendMessage } from "../services/telegram.js";
 import {
   getAllChatLogs,
   getAllKB, addKBEntry, updateKBEntry, deleteKBEntry,
@@ -148,6 +149,36 @@ export async function handleAdmin(request, env) {
       },
     });
     return json({ success: true, message: "KB + Gemini cache cleared" });
+  }
+
+  // ── Bridge Messages
+  if (path === "/api/messages" && request.method === "GET") {
+    return json(await getAllMessages(env));
+  }
+
+  if (path === "/api/messages/read" && request.method === "POST") {
+    const { id } = await request.json();
+    await markMessageRead(env, id);
+    return json({ success: true });
+  }
+
+  if (path === "/api/messages/reply" && request.method === "POST") {
+    const { content } = await request.json();
+    if (!content) return json({ error: "content required" }, 400);
+    // Send to မမ via Telegram
+    const userIds = (env.ALLOWED_USER_IDS || "").split(",").map(s => s.trim()).filter(id => id !== env.ADMIN_ID);
+    for (const uid of userIds) {
+      await sendMessage(env, uid, content);
+      await saveChatLog(env, { userId: uid, role: "assistant", message: content });
+    }
+    await saveMessage(env, { direction: "to_user", content });
+    return json({ success: true });
+  }
+
+  if (path.startsWith("/api/messages/") && request.method === "DELETE") {
+    const id = path.split("/").pop();
+    await deleteMessage(env, id);
+    return json({ success: true });
   }
 
   return json({ error: "Not found" }, 404);
