@@ -83,8 +83,9 @@ export async function handleWebhook(request, env) {
     if (text && isBridgeRequest(text)) {
       const extracted = extractBridgeContent(text);
       if (extracted) {
-        await saveMessage(env, { direction: "to_admin", content: extracted });
-        console.log("Bridge message saved:", extracted);
+        const wrapped = `ဆရာရေ၊ မမက ဆရာ့ကို "${extracted}" လို့ ပြောပေးခိုင်းလိုက်လို့ပါ 💌`;
+        await saveMessage(env, { direction: "to_admin", content: wrapped });
+        console.log("Bridge message saved:", wrapped);
       }
     }
 
