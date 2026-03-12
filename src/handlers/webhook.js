@@ -100,18 +100,23 @@ export async function handleWebhook(request, env) {
 }
 
 // ── Bridge detection helpers
-const BRIDGE_TARGETS = ["ဆရာ", "ဦးဝင်းမြင့်ထွန်း", "ကိုကို", "ကိုကြီး", "နင့်ဆရာ", "သူ"];
+const BRIDGE_TARGETS = ["နင့်ဆရာ", "ဦးဝင်းမြင့်ထွန်း", "ကိုကြီး", "ကိုကို", "ဆရာ", "သူ"];
 const BRIDGE_ACTIONS = ["ပြောပေး", "သွားပြောပေး", "ဆချပေး", "သိစေပေး", "ပြောလိုက်"];
+// All possible "ကို" suffixes per target
+const BRIDGE_KIO = ["ကို", "့ကို", "ကိုသွား", "့ကိုသွား"];
 
 function isBridgeRequest(text) {
   const t = text.replace(/\s+/g, "");
-  return BRIDGE_TARGETS.some(target =>
-    BRIDGE_ACTIONS.some(action => {
-      const keyword = (target + "ကို" + action).replace(/\s+/g, "");
-      const keyword2 = (target + "့ကို" + action).replace(/\s+/g, "");
-      return t.includes(keyword) || t.includes(keyword2);
-    })
+  // 1. Target + kio + action pattern
+  const hasTargetPattern = BRIDGE_TARGETS.some(target =>
+    BRIDGE_ACTIONS.some(action =>
+      BRIDGE_KIO.some(kio => t.includes((target + kio + action).replace(/\s+/g, "")))
+    )
   );
+  if (hasTargetPattern) return true;
+  // 2. Standalone "သွားပြောပေး" or "ပြောပေးဦး" — implicit bridge
+  const standalone = ["သွားပြောပေး", "သွားပြောပေးဦး", "သွားပြောလိုက်"];
+  return standalone.some(kw => t.includes(kw));
 }
 
 function extractBridgeContent(text) {
