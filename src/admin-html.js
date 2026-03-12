@@ -250,16 +250,13 @@ select.form-ctrl option{background:var(--s1);}
       </div>
       <div class="scroll-body" id="sch-body"><div class="loading"><div class="spin"></div>Loading...</div></div>
     </div>
-<div class="tab" id="tab-messages" style="display:flex;flex-direction:column;height:100vh">
+    <div class="tab" id="tab-messages" style="display:flex;flex-direction:column;height:100%">
       <div class="pg-hdr" style="flex-shrink:0">
         <div class="pg-title">💌 Messages</div>
+        <button class="btn-pri" onclick="openWMTReply()">✏️ WMT Reply</button>
       </div>
-      <div id="msg-body" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px">
+      <div id="bridge-msg-body" class="scroll-body" style="flex:1;padding:16px;display:flex;flex-direction:column;gap:10px">
         <div class="loading"><div class="spin"></div>Loading...</div>
-      </div>
-      <div style="flex-shrink:0;padding:12px 16px;border-top:1px solid var(--border);background:var(--s1);display:flex;gap:10px;align-items:flex-end">
-        <textarea id="wmt-reply-input" rows="2" placeholder="WMT → မမ ကို ပြောမည်..." style="flex:1;background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:10px 14px;color:var(--t1);font-family:inherit;font-size:14px;resize:none;outline:none;line-height:1.5" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendWMTReply();}"></textarea>
-        <button onclick="sendWMTReply()" style="background:var(--acc);border:none;color:#fff;border-radius:50%;width:40px;height:40px;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">➤</button>
       </div>
     </div>
 
