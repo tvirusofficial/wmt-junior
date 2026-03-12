@@ -250,7 +250,7 @@ select.form-ctrl option{background:var(--s1);}
       </div>
       <div class="scroll-body" id="sch-body"><div class="loading"><div class="spin"></div>Loading...</div></div>
     </div>
-    <div class="tab" id="tab-messages" style="display:flex;flex-direction:column;height:100%">
+    <div class="tab" id="tab-messages" style="flex-direction:column;height:100%">
       <div class="pg-hdr" style="flex-shrink:0">
         <div class="pg-title">💌 Messages</div>
         <button class="btn-pri" onclick="openWMTReply()">✏️ WMT Reply</button>
